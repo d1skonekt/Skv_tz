@@ -54,11 +54,7 @@ let Chess = {
 
         this.randomPosition = Math.round(Math.random() * 63); // рандомизируем первое место при загрузке страницы для коня
 
-        
-
         this.setHorsedSize();
-
-
 
     },
     setHorsedSize: function () {
