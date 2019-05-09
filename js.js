@@ -54,10 +54,10 @@ let Chess = {
 
         this.randomPosition = Math.round(Math.random() * 63); // рандомизируем первое место при загрузке страницы для коня
 
-        this.setHorsedSize();
+        this.setHorse();
 
     },
-    setHorsedSize: function () {
+    setHorse: function () {
         this.horse.domElement.style.width = (this.defaultSize * 0.124) + 'px';
         this.horse.domElement.style.height = this.horse.domElement.style.width;
 
@@ -70,7 +70,7 @@ let Chess = {
     setListeners: function () {
         document.body.onresize = () => {
             this.setBoardSize();
-            this.setHorsedSize();
+            this.setHorse();
         }
     },
     moveHorse: function () {
@@ -82,14 +82,14 @@ let Chess = {
     }
 }
 
-Chess.init();
 
-// document.addEventListener('DOMContentLoaded', function() {
-//     Chess.init();
-// }, false);
+document.addEventListener('DOMContentLoaded', function () {
+    Chess.init();
+    console.log(Chess.board);
+    console.log(Chess.horse);
+}, false);
 
-console.log(Chess.board);
-console.log(Chess.horse);
+
 
 
 
