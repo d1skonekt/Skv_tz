@@ -30,3 +30,6 @@ body{
     position: absolute;
     cursor: pointer;
 }
+.variant_for_jump{
+    background-color: #A9EFFF !important;
+}
