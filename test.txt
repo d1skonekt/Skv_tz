@@ -1,0 +1,107 @@
+// 0 создание пол€ и определение правильного квадрата по ориентации типа экрана
+
+let Chess = {
+    init: function () {
+        this.drawBoard();
+        // this.setListeners();
+        this.createHorse();
+    },
+    drawBoard: function () {
+        let wrapperField = document.createElement('div');
+        document.body.insertBefore(wrapperField, document.body.firstChild);
+        wrapperField.classList.add('wrapper_field');
+
+        let screenOrientation = window.screen.orientation.type;
+        if (screenOrientation == 'landscape-primary' || screenOrientation == 'landscape-secondary') {
+            wrapperField.style.height = '90vh';
+            wrapperField.style.width = '90vh';
+        } else {
+            wrapperField.style.height = '90vw';
+            wrapperField.style.width = '90vw';
+        }
+        for (let i = 1; i < 65; i++) {
+            let cell = document.createElement('div');
+            wrapperField.appendChild(cell);
+            cell.classList.add('chess_cell');
+        }
+
+        let chessCells = document.querySelectorAll('.chess_cell');
+        let x = 1, y = 8;
+        for (let i = 0; i < chessCells.length; i++) {
+            if (x > 8) {
+                x = 1;
+                y--;
+            }
+            chessCells[i].positionX = x;
+            chessCells[i].positionY = y;
+            x++;
+            if (((i % 2 == 0) && (y % 2 == 0)) || ((i % 2 != 0) && (y % 2 != 0))) {
+                chessCells[i].classList.add('yellow_bg');
+            } else {
+                chessCells[i].classList.add('brown_bg');
+            }
+        }
+    },
+    // setListeners: function () {
+    // },
+    createHorse: function () {
+        let horse = document.createElement('div');
+        horse.classList.add('active');
+        horse.setAttribute('draggable', true)
+        wrapperField.appendChild(horse);
+
+        horse.style.width = chessCells[1].offsetWidth + 'px';
+        horse.style.height = chessCells[1].offsetHeight + 'px';
+
+        let randomPosition = Math.round(Math.random() * 63);
+        console.log(randomPosition);
+        chessCells[randomPosition].style.border = '3px solid blue';
+        amendmentY = (document.body.offsetHeight - wrapperField.offsetHeight) / 2
+        console.log(amendmentY)
+        amendmentX = (document.body.offsetWidth - wrapperField.offsetWidth) / 2
+        console.log(amendmentX);
+        horse.style.top = (chessCells[randomPosition].getBoundingClientRect().top - amendmentY) + 'px';
+        horse.style.left = (chessCells[randomPosition].getBoundingClientRect().left - amendmentX) + 'px';
+        console.log(horse.getBoundingClientRect());
+    },
+    horse: {
+        domElement: function () {
+            document.createElement('div');
+            horse.classList.add('active');
+            horse.setAttribute('draggable', true)
+            wrapperField.appendChild(horse);
+        }
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    Chess.init();
+}, false);
+
+
+// 1 рандомизаци€ кон€
+
+
+
+
+
+
+
+// chessCells[randomPosition].classList.add('active');
+// chessCells[randomPosition].setAttribute('draggable', true);
+
+//2 перенос DragТnТDrop
+
+// wrapperField.addEventListener('dragover', function (event) {
+//     event.preventDefault();
+// })
+// wrapperField.addEventListener('drop', function (event) {
+//     console.log('!');
+// })
+
+
+// chessCells.forEach(element => {
+//     var rect = element.getBoundingClientRect();
+//     console.log(rect.top, rect.right, rect.bottom, rect.left);
+// });

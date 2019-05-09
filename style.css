@@ -8,14 +8,14 @@ body{
     justify-content: center;
 }
 .wrapper_field{
-    border: 1px solid black;
+    /* border: 1px solid black; */
     display: flex;
     flex-wrap: wrap;
     position: relative;
 }
 .chess_cell {
     width: 12.5%;
-    border: 1px solid black;
+    /* border: 1px solid black; */
     box-sizing: border-box;
 }
 .yellow_bg{
@@ -24,7 +24,7 @@ body{
 .brown_bg {
     background-color: #c8623c;
 }
-.active {
+.horse {
     background: url(horse_logo.png) no-repeat center;
     background-size: cover;
     position: absolute;
