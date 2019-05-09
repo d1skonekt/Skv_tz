@@ -4,7 +4,6 @@ let Chess = {
         this.createCells();
         this.createHorse();
         this.setListeners();
-        this.randomFirstHorstPosition();
     },
     createBoard: function () {  //создание доски и вызов ф-и которая определяет размеры блока;
         this.board = {};
@@ -45,7 +44,6 @@ let Chess = {
                 this.board.cells[i].classList.add('brown_bg');
             }
         }
-        this.randomPosition = Math.round(Math.random() * 63);
     },
     createHorse: function () {  //создание коня и вызов ф-и которая определяет размеры блока;
         this.horse = {};
@@ -53,23 +51,25 @@ let Chess = {
         this.horse.domElement.classList.add('horse');
         this.horse.domElement.setAttribute('draggable', true)
         this.board.domElement.appendChild(this.horse.domElement);
+
+        this.randomPosition = Math.round(Math.random() * 63); // рандомизируем первое место при загрузке страницы для коня
+
+        
+
         this.setHorsedSize();
 
-       
 
-        console.log(this.randomPosition)
 
     },
     setHorsedSize: function () {
         this.horse.domElement.style.width = (this.defaultSize * 0.124) + 'px';
         this.horse.domElement.style.height = this.horse.domElement.style.width;
 
-        //рандомизация коня при первом запуске
-        
-        let amendmentY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2
-        let amendmentX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2
-        this.horse.domElement.style.top = (this.board.cells[this.randomPosition].getBoundingClientRect().top - amendmentY) + 'px';
-        this.horse.domElement.style.left = (this.board.cells[this.randomPosition].getBoundingClientRect().left - amendmentX) + 'px';
+        this.horse.posX = this.board.cells[this.randomPosition].getBoundingClientRect().x;
+        this.horse.posY = this.board.cells[this.randomPosition].getBoundingClientRect().y;
+
+        this.moveHorse();
+
     },
     setListeners: function () {
         document.body.onresize = () => {
@@ -77,8 +77,12 @@ let Chess = {
             this.setHorsedSize();
         }
     },
-    randomFirstHorstPosition: function () {
+    moveHorse: function () {
+        this.horse.amendmentY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2
+        this.horse.amendmentX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2
 
+        this.horse.domElement.style.top = (this.horse.posY - this.horse.amendmentY) + 'px';
+        this.horse.domElement.style.left = (this.horse.posX - this.horse.amendmentX) + 'px';
     }
 }
 
@@ -90,7 +94,6 @@ Chess.init();
 
 console.log(Chess.board);
 console.log(Chess.horse);
-console.log(Chess.board.cells);
-console.log(Chess);
+
 
 
