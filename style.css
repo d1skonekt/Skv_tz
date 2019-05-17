@@ -29,7 +29,9 @@ body{
     background-size: cover;
     position: absolute;
     cursor: pointer;
+    box-sizing: border-box;
 }
 .variant_for_jump{
     background-color: #A9EFFF !important;
+    cursor: pointer;
 }

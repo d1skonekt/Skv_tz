@@ -94,9 +94,8 @@ let Chess = {
   },
 
 
-  moveHorse: function (x, y) {
-    let newX = x;
-    let newY = y;
+  moveHorse: function (newX, newY) {
+
     this.horse.amendmentY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2 //определение поправок для выставления коня по центру
     this.horse.amendmentX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2
 
@@ -110,6 +109,7 @@ let Chess = {
     let activeX = this.horse.boardPosX;
     let activeY = this.horse.boardPosY;
     this.board.cells.forEach(element => {
+      element.domElement.classList.remove('variant_for_jump');
       if (((element.boardPosX == activeX + 1) && (element.boardPosY == activeY + 2)) ||  //подсветка возможных ходов коня
         ((element.boardPosX == activeX + 1) && (element.boardPosY == activeY - 2)) ||
         ((element.boardPosX == activeX + 2) && (element.boardPosY == activeY + 1)) ||
@@ -121,10 +121,8 @@ let Chess = {
       ) {
         element.domElement.classList.add('variant_for_jump');
         element.domElement.addEventListener('click', () => {   //изменили информацию о новой позиции ячейки в которую передвинулись
-          let newBoardX = element.boardPosX;
-          let newBoardY = element.boardPosY;
-          this.horse.boardPosX = newBoardX;
-          this.horse.boardPosY = newBoardY;
+          this.horse.boardPosX = element.boardPosX;
+          this.horse.boardPosY = element.boardPosY;
 
 
           let newposinionX = element.domElement.getBoundingClientRect().x; // пристваиваем новым переменным данные  о позиции ячейки на которую кликнули
@@ -132,9 +130,6 @@ let Chess = {
 
           this.moveHorse(newposinionX, newposinionY) // вызываем ф-ю передвижения коня с новыми  параментрами 
 
-          this.board.cells.forEach(element => { // перебераем все елементы массива с ячейками и удаляем после клика подсвеченые элементы относительно старой позиции
-            element.domElement.classList.remove('variant_for_jump');
-          })
           this.highlightVariant(); //повторно вызываем ф-ю подсветки
         })
 
