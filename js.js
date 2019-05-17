@@ -21,11 +21,11 @@ let Chess = {
   setBoardSize: function () {
     // условие для всегда правильного квадрата
     if (document.body.offsetWidth >= document.body.offsetHeight) {
-      this.board.domElement.style.width = '90vh';
-      this.board.domElement.style.height = '90vh';
+      this.board.domElement.style.width = '80vh';
+      this.board.domElement.style.height = '80vh';
     } else {
-      this.board.domElement.style.width = '90vw';
-      this.board.domElement.style.height = '90vw';
+      this.board.domElement.style.width = '80vw';
+      this.board.domElement.style.height = '80vw';
     }
 
     // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
@@ -72,7 +72,6 @@ let Chess = {
     this.horse = {};
     this.horse.domElement = document.createElement('div');
     this.horse.domElement.classList.add('horse');
-    this.horse.domElement.setAttribute('draggable', true)
     this.board.domElement.appendChild(this.horse.domElement);
 
     // рандомизируем первое место при загрузке страницы для коня
@@ -154,7 +153,7 @@ let Chess = {
       
       this.horse.boardPosX = element.boardPosX;
       this.horse.boardPosY = element.boardPosY;
-
+      // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
       this.currentCell = element.id;
 
       this.moveHorse(element.domElement.getBoundingClientRect().x, element.domElement.getBoundingClientRect().y);
