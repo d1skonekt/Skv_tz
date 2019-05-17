@@ -21,11 +21,11 @@ let Chess = {
   setBoardSize: function () {
     // условие для всегда правильного квадрата
     if (document.body.offsetWidth >= document.body.offsetHeight) {
-      this.board.domElement.style.width = '80vh';
-      this.board.domElement.style.height = '80vh';
+      this.board.domElement.style.width = '90vh';
+      this.board.domElement.style.height = '90vh';
     } else {
-      this.board.domElement.style.width = '80vw';
-      this.board.domElement.style.height = '80vw';
+      this.board.domElement.style.width = '90vw';
+      this.board.domElement.style.height = '90vw';
     }
 
     // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
