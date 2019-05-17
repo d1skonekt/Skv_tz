@@ -81,7 +81,7 @@ let Chess = {
     this.horse.boardPosX = this.board.cells[this.randomPosition].boardPosX; // определение позиции на шахматной доске
     this.horse.boardPosY = this.board.cells[this.randomPosition].boardPosY;
 
-    this.moveHorse();
+    this.moveHorse(this.horse.posinionX, this.horse.posinionY);
 
   },
 
@@ -94,12 +94,15 @@ let Chess = {
   },
 
 
-  moveHorse: function () {
+  moveHorse: function (x, y) {
+    let newX = x;
+    let newY = y;
     this.horse.amendmentY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2 //определение поправок для выставления коня по центру
     this.horse.amendmentX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2
 
-    this.horse.domElement.style.top = (this.horse.posinionY - this.horse.amendmentY) + 'px';     // перемещение коня на позицию с учетом поправки
-    this.horse.domElement.style.left = (this.horse.posinionX - this.horse.amendmentX) + 'px';
+    this.horse.domElement.style.left = (newX - this.horse.amendmentX) + 'px';
+    this.horse.domElement.style.top = (newY - this.horse.amendmentY) + 'px';     // перемещение коня на позицию с учетом поправки
+
   },
 
 
@@ -107,23 +110,6 @@ let Chess = {
     let activeX = this.horse.boardPosX;
     let activeY = this.horse.boardPosY;
     this.board.cells.forEach(element => {
-      // if ((element.boardPosX == activeX + 1) && (element.boardPosY == activeY + 2)) {
-      //   element.domElement.classList.add('variant_for_jump');
-      // } else if ((element.boardPosX == activeX + 1) && (element.boardPosY == activeY - 2)) {
-      //   element.domElement.classList.add('variant_for_jump');
-      // } else if ((element.boardPosX == activeX + 2) && (element.boardPosY == activeY + 1)) {
-      //   element.domElement.classList.add('variant_for_jump');
-      // } else if ((element.boardPosX == activeX + 2) && (element.boardPosY == activeY - 1)) {
-      //   element.domElement.classList.add('variant_for_jump');
-      // } else if ((element.boardPosX == activeX - 1) && (element.boardPosY == activeY + 2)) {
-      //   element.domElement.classList.add('variant_for_jump');
-      // } else if ((element.boardPosX == activeX - 1) && (element.boardPosY == activeY - 2)) {
-      //   element.domElement.classList.add('variant_for_jump');
-      // } else if ((element.boardPosX == activeX - 2) && (element.boardPosY == activeY + 1)) {
-      //   element.domElement.classList.add('variant_for_jump');
-      // } else if ((element.boardPosX == activeX - 2) && (element.boardPosY == activeY - 1)) {
-      //   element.domElement.classList.add('variant_for_jump');
-      // }
       if (((element.boardPosX == activeX + 1) && (element.boardPosY == activeY + 2)) ||  //подсветка возможных ходов коня
         ((element.boardPosX == activeX + 1) && (element.boardPosY == activeY - 2)) ||
         ((element.boardPosX == activeX + 2) && (element.boardPosY == activeY + 1)) ||
@@ -134,6 +120,24 @@ let Chess = {
         ((element.boardPosX == activeX - 2) && (element.boardPosY == activeY - 1))
       ) {
         element.domElement.classList.add('variant_for_jump');
+        element.domElement.addEventListener('click', () => {   //изменили информацию о новой позиции ячейки в которую передвинулись
+          let newBoardX = element.boardPosX;
+          let newBoardY = element.boardPosY;
+          this.horse.boardPosX = newBoardX;
+          this.horse.boardPosY = newBoardY;
+
+
+          let newposinionX = element.domElement.getBoundingClientRect().x; // пристваиваем новым переменным данные  о позиции ячейки на которую кликнули
+          let newposinionY = element.domElement.getBoundingClientRect().y;
+
+          this.moveHorse(newposinionX, newposinionY) // вызываем ф-ю передвижения коня с новыми  параментрами 
+
+          this.board.cells.forEach(element => { // перебераем все елементы массива с ячейками и удаляем после клика подсвеченые элементы относительно старой позиции
+            element.domElement.classList.remove('variant_for_jump');
+          })
+          this.highlightVariant(); //повторно вызываем ф-ю подсветки
+        })
+
       }
     });
   }
@@ -143,14 +147,10 @@ let Chess = {
 
 document.addEventListener('DOMContentLoaded', function () { // запуск после прогрузки всех dom елементов 
   Chess.init();
+  console.log(Chess);
   console.log(Chess.board);
   console.log(Chess.horse);
   console.log(Chess.board.cells);
   console.log(Chess.horse.posinionX);
   console.log(Chess.horse.posinionY);
 }, false);
-
-
-
-
-
