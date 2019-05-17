@@ -43,6 +43,7 @@ let Chess = {
         domElement: document.createElement('div')
       }
       // вставка в поле каждой отдельной ячейки и присвоение ячейки класса
+      
       this.board.domElement.appendChild(this.board.cells[i].domElement);
       this.board.cells[i].domElement.classList.add('chess_cell');
 
@@ -60,6 +61,9 @@ let Chess = {
       } else {
         this.board.cells[i].domElement.classList.add('brown_bg');
       }
+      // SKVEDIT
+      // Устанавливаем ссылку на js объект в DOM элемент
+      this.board.cells[i].domElement.src = this.board.cells[i];
     }
   },
 
@@ -102,22 +106,12 @@ let Chess = {
       this.setBoardSize();
       this.setHorseParams();
     }
-
+    // добавление события клика на каждый элемент ячейки
     this.board.cells.forEach(element => {
-      element.domElement.addEventListener('click', () => {
-        if (element.domElement.classList.contains('variant_for_jump')) {
-          this.horse.boardPosX = element.boardPosX;
-          this.horse.boardPosY = element.boardPosY;
-
-          this.currentCell = element.id;
-
-          this.moveHorse(element.domElement.getBoundingClientRect().x, element.domElement.getBoundingClientRect().y);
-
-          this.highlightVariant();
-        }
+      element.domElement.addEventListener('click', () =>{
+        this.clickOnVariantJump(element);        
       });
     });
-
   },
 
 
@@ -150,20 +144,24 @@ let Chess = {
         ((element.boardPosX == activeX - 2) && (element.boardPosY == activeY - 1))
       ) {
         element.domElement.classList.add('variant_for_jump');
-        // element.domElement.addEventListener('click', () => {
-        //   if (element.domElement.classList.contains('variant_for_jump')) {
-        //     this.horse.boardPosX = element.boardPosX;
-        //     this.horse.boardPosY = element.boardPosY;
-
-        //     this.moveHorse(element.domElement.getBoundingClientRect().x, element.domElement.getBoundingClientRect().y);
-
-        //     this.highlightVariant();
-        //   }
-        // });
       }
     });
   },
 
+  //перемещение коня по клику на новую позицию с заменой данных
+  clickOnVariantJump: function (element) {
+    if (element.domElement.classList.contains('variant_for_jump')) {
+      
+      this.horse.boardPosX = element.boardPosX;
+      this.horse.boardPosY = element.boardPosY;
+
+      this.currentCell = element.id;
+
+      this.moveHorse(element.domElement.getBoundingClientRect().x, element.domElement.getBoundingClientRect().y);
+      
+      this.highlightVariant();
+    }
+  },
 
 }
 
