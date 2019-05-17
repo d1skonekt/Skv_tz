@@ -3,8 +3,8 @@ let Chess = {
     this.createBoard();
     this.createCells();
     this.createHorse();
-    this.setListeners();
     this.highlightVariant();
+    this.setListeners();
   },
 
 
@@ -64,7 +64,7 @@ let Chess = {
     this.horse.domElement.setAttribute('draggable', true)
     this.board.domElement.appendChild(this.horse.domElement);
 
-    this.randomPosition = Math.round(Math.random() * 63);   // рандомизируем первое место при загрузке страницы для коня
+    this.location = Math.round(Math.random() * 63);   // рандомизируем первое место при загрузке страницы для коня
 
     this.setHorseParams();
 
@@ -75,11 +75,11 @@ let Chess = {
     this.horse.domElement.style.width = (this.defaultSize * 0.124) + 'px';  // определение ширины/высоты коня
     this.horse.domElement.style.height = this.horse.domElement.style.width;
 
-    this.horse.posinionX = this.board.cells[this.randomPosition].domElement.getBoundingClientRect().x;  //присвоение позициям X,Y для постановки на доску
-    this.horse.posinionY = this.board.cells[this.randomPosition].domElement.getBoundingClientRect().y;
+    this.horse.posinionX = this.board.cells[this.location].domElement.getBoundingClientRect().x;  //присвоение позициям X,Y для постановки на доску
+    this.horse.posinionY = this.board.cells[this.location].domElement.getBoundingClientRect().y;
 
-    this.horse.boardPosX = this.board.cells[this.randomPosition].boardPosX; // определение позиции на шахматной доске
-    this.horse.boardPosY = this.board.cells[this.randomPosition].boardPosY;
+    this.horse.boardPosX = this.board.cells[this.location].boardPosX; // определение позиции на шахматной доске
+    this.horse.boardPosY = this.board.cells[this.location].boardPosY;
 
     this.moveHorse(this.horse.posinionX, this.horse.posinionY);
 
@@ -108,7 +108,7 @@ let Chess = {
   highlightVariant: function () {
     let activeX = this.horse.boardPosX;
     let activeY = this.horse.boardPosY;
-    this.board.cells.forEach(element => {
+    this.board.cells.forEach(element => { // перебераем все елементы массива с ячейками и удаляем после клика подсвеченые элементы относительно старой позиции
       element.domElement.classList.remove('variant_for_jump');
       if (((element.boardPosX == activeX + 1) && (element.boardPosY == activeY + 2)) ||  //подсветка возможных ходов коня
         ((element.boardPosX == activeX + 1) && (element.boardPosY == activeY - 2)) ||
@@ -120,22 +120,26 @@ let Chess = {
         ((element.boardPosX == activeX - 2) && (element.boardPosY == activeY - 1))
       ) {
         element.domElement.classList.add('variant_for_jump');
-        element.domElement.addEventListener('click', () => {   //изменили информацию о новой позиции ячейки в которую передвинулись
-          this.horse.boardPosX = element.boardPosX;
-          this.horse.boardPosY = element.boardPosY;
-
-
-          let newposinionX = element.domElement.getBoundingClientRect().x; // пристваиваем новым переменным данные  о позиции ячейки на которую кликнули
-          let newposinionY = element.domElement.getBoundingClientRect().y;
-
-          this.moveHorse(newposinionX, newposinionY) // вызываем ф-ю передвижения коня с новыми  параментрами 
-
-          this.highlightVariant(); //повторно вызываем ф-ю подсветки
-        })
-
+        this.clickOnVariantJump(element);
       }
     });
-  }
+  },
+
+
+  clickOnVariantJump: function (element) {
+    if (element.domElement.className === 'chess_cell brown_bg variant_for_jump' || element.domElement.className === 'chess_cell yellow_bg variant_for_jump') {
+      element.domElement.addEventListener('click', () => {
+        this.horse.boardPosX = element.boardPosX;     //присваиваем значение позиции кликнувщей ячейки
+        this.horse.boardPosY = element.boardPosY;
+
+        this.location = element.id //передаем номер элемента в массиве на который походили , чтобы корректно работал ресайзинг 
+
+        this.moveHorse(element.domElement.getBoundingClientRect().x, element.domElement.getBoundingClientRect().y) // вызываем ф-ю передвижения коня с новыми  параментрами 
+
+        this.highlightVariant();
+      })
+    }
+  },
 
 }
 
@@ -146,6 +150,4 @@ document.addEventListener('DOMContentLoaded', function () { // запуск по
   console.log(Chess.board);
   console.log(Chess.horse);
   console.log(Chess.board.cells);
-  console.log(Chess.horse.posinionX);
-  console.log(Chess.horse.posinionY);
 }, false);
