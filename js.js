@@ -104,8 +104,20 @@ let Chess = {
     }
 
     this.board.cells.forEach(element => {
-      element.domElement.addEventListener('click', this.clickOnVariantJump(element));
+      element.domElement.addEventListener('click', () => {
+        if (element.domElement.classList.contains('variant_for_jump')) {
+          this.horse.boardPosX = element.boardPosX;
+          this.horse.boardPosY = element.boardPosY;
+
+          this.currentCell = element.id;
+
+          this.moveHorse(element.domElement.getBoundingClientRect().x, element.domElement.getBoundingClientRect().y);
+
+          this.highlightVariant();
+        }
+      });
     });
+
   },
 
 
@@ -152,16 +164,6 @@ let Chess = {
     });
   },
 
-
-  clickOnVariantJump: function (element) {
-    if (element.domElement.classList.contains('variant_for_jump')) {
-      console.log('cer')
-      this.horse.boardPosX = element.boardPosX;
-      this.horse.boardPosY = element.boardPosY;
-
-      this.moveHorse(element.domElement.getBoundingClientRect().x, element.domElement.getBoundingClientRect().y);
-    }
-  },
 
 }
 
