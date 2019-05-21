@@ -7,6 +7,7 @@ let Chess = {
     this.setListeners();
   },
 
+
   //создание доски и вызов ф-и которая определяет размеры блока;
   createBoard: function () {
     this.board = {};
@@ -32,6 +33,7 @@ let Chess = {
     this.defaultSize = this.board.domElement.offsetWidth;
   },
 
+
   // создание ячеек поля + добавление позиции X,Y + добавление классов для окраса;
   createCells: function () {
     //  массив обьектов с параметрами позиции ячейки (x,y) + domElement
@@ -40,10 +42,11 @@ let Chess = {
     for (let i = 0; i < 64; i++) {
       this.board.cells[i] = {
         id: i + '',
-        domElement: document.createElement('div')
+        domElement: document.createElement('div'),
+        isDrag: false
       }
       // вставка в поле каждой отдельной ячейки и присвоение ячейки класса
-      
+
       this.board.domElement.appendChild(this.board.cells[i].domElement);
       this.board.cells[i].domElement.classList.add('chess_cell');
 
@@ -67,9 +70,11 @@ let Chess = {
     }
   },
 
+
   //создание блока коня и вызов ф-и которая определяет его размеры;
   createHorse: function () {
     this.horse = {};
+    this.horse.isDrag = false;
     this.horse.domElement = document.createElement('div');
     this.horse.domElement.classList.add('horse');
     this.board.domElement.appendChild(this.horse.domElement);
@@ -99,29 +104,69 @@ let Chess = {
 
   },
 
+
   //перерисовка поля и коня при изменении размеров
   setListeners: function () {
     document.body.onresize = () => {
       this.setBoardSize();
       this.setHorseParams();
     }
-    // добавление события клика на каждый элемент ячейки
+
+    // добавление события клика на каждый элемент ячейки (ход коня + подсветка следующего варианта)
     this.board.cells.forEach(element => {
-      element.domElement.addEventListener('click', () =>{
-        this.clickOnVariantJump(element);        
+      element.domElement.addEventListener('click', (event) => {
+        this.clickOnVariantJump(element);
       });
     });
+
+    //Клик мышки по коню (grad & drop)
+    this.horse.domElement.addEventListener('mousedown', event => {
+      //определение начала действия перетягивания
+      this.horse.isDrag = true;
+      // вычисление поправки для курсора при зажатой мышке над конем
+      let coords = this.horse.domElement.getBoundingClientRect();
+      let shiftX = event.pageX - coords.left;
+      let shiftY = event.pageY - coords.top;
+
+      // передвинуть коня по действующим координатам с учетом поправок
+      this.board.domElement.addEventListener('mousemove', event => {
+        // удаление подсвеченых элементов при перетягивании
+        this.board.cells.forEach(element => {
+          element.domElement.classList.remove('variant_for_jump');
+        });
+        if (this.horse.isDrag === true) {
+          if (event.clientX > this.board.domElement.getBoundingClientRect().right ||
+            event.clientX < this.board.domElement.getBoundingClientRect().left ||
+            event.clientY > this.board.domElement.getBoundingClientRect().bottom ||
+            event.clientY < this.board.domElement.getBoundingClientRect().top) {
+            return;
+          }
+          this.horse.domElement.style.left = event.clientX - shiftX + 'px';
+          this.horse.domElement.style.top = event.clientY - shiftY + 'px';
+        }
+      });
+    });
+
+
+    document.addEventListener('click', (event) => {
+      console.log(event);
+    })
+
+
+    // отпускание клавиши мышки с коня и определение окончания действия перетягивая
+    this.horse.domElement.addEventListener('mouseup', () => {
+      if (this.horse.isDrag === true) {
+        this.horse.isDrag = false;
+        console.log(event);
+      }
+    })
   },
 
 
   moveHorse: function (newX, newY) {
-    //определение поправок для выставления коня по центру
-    this.horse.amendmentY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2
-    this.horse.amendmentX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2
-
     // перемещение коня на позицию с учетом поправки
-    this.horse.domElement.style.left = (newX - this.horse.amendmentX) + 'px';
-    this.horse.domElement.style.top = (newY - this.horse.amendmentY) + 'px';
+    this.horse.domElement.style.left = newX + 'px';
+    this.horse.domElement.style.top = newY + 'px';
 
   },
 
@@ -147,22 +192,24 @@ let Chess = {
     });
   },
 
+
   //перемещение коня по клику на новую позицию с заменой данных
   clickOnVariantJump: function (element) {
     if (element.domElement.classList.contains('variant_for_jump')) {
-      
+
       this.horse.boardPosX = element.boardPosX;
       this.horse.boardPosY = element.boardPosY;
       // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
       this.currentCell = element.id;
 
       this.moveHorse(element.domElement.getBoundingClientRect().x, element.domElement.getBoundingClientRect().y);
-      
+
       this.highlightVariant();
     }
   },
 
 }
+
 
 // запуск после прогрузки всех dom елементов 
 document.addEventListener('DOMContentLoaded', function () {
