@@ -64,7 +64,6 @@ let Chess = {
       } else {
         this.board.cells[i].domElement.classList.add('brown_bg');
       }
-      // SKVEDIT
       // Устанавливаем ссылку на js объект в DOM элемент
       this.board.cells[i].domElement.src = this.board.cells[i];
     }
@@ -100,6 +99,8 @@ let Chess = {
     this.horse.boardPosX = this.board.cells[this.currentCell].boardPosX;
     this.horse.boardPosY = this.board.cells[this.currentCell].boardPosY;
 
+    this.horse.correctionInfo = this.horse.domElement.offsetWidth / 2
+
     this.moveHorse(this.horse.posinionX, this.horse.posinionY);
 
   },
@@ -114,52 +115,56 @@ let Chess = {
 
     // добавление события клика на каждый элемент ячейки (ход коня + подсветка следующего варианта)
     this.board.cells.forEach(element => {
-      element.domElement.addEventListener('click', (event) => {
+      element.domElement.addEventListener('click', () => {
         this.clickOnVariantJump(element);
       });
     });
 
     //Клик мышки по коню (grad & drop)
-    this.horse.domElement.addEventListener('mousedown', event => {
-      //определение начала действия перетягивания
-      this.horse.isDrag = true;
-      // вычисление поправки для курсора при зажатой мышке над конем
-      let coords = this.horse.domElement.getBoundingClientRect();
-      let shiftX = event.pageX - coords.left;
-      let shiftY = event.pageY - coords.top;
-
-      // передвинуть коня по действующим координатам с учетом поправок
-      this.board.domElement.addEventListener('mousemove', event => {
-        // удаление подсвеченых элементов при перетягивании
+    document.addEventListener('mousedown', (event) => {
+      if (event.target.classList.contains('horse')) {
+        this.horse.isDrag = true;
+        //удаляем подсветку если нажали на коня и готовы передвинуть его
         this.board.cells.forEach(element => {
           element.domElement.classList.remove('variant_for_jump');
         });
-        if (this.horse.isDrag === true) {
-          if (event.clientX > this.board.domElement.getBoundingClientRect().right ||
-            event.clientX < this.board.domElement.getBoundingClientRect().left ||
-            event.clientY > this.board.domElement.getBoundingClientRect().bottom ||
-            event.clientY < this.board.domElement.getBoundingClientRect().top) {
-            return;
-          }
-          this.horse.domElement.style.left = event.clientX - shiftX + 'px';
-          this.horse.domElement.style.top = event.clientY - shiftY + 'px';
-        }
-      });
-    });
-
-
-    document.addEventListener('click', (event) => {
-      console.log(event);
-    })
-
-
-    // отпускание клавиши мышки с коня и определение окончания действия перетягивая
-    this.horse.domElement.addEventListener('mouseup', () => {
-      if (this.horse.isDrag === true) {
-        this.horse.isDrag = false;
-        console.log(event);
       }
     })
+
+    document.addEventListener('mousemove', (event) => {
+      if (this.horse.isDrag) {
+        // вызов ф-и передвижения коня следом за курсором мыши ((курсор всегда по центру коня))
+        this.moveHorse(event.pageX - this.horse.correctionInfo, event.pageY - this.horse.correctionInfo);
+      }
+    })
+
+    // окончание движение мышки и дроп коня с  учетом того , что начался Драг
+    document.addEventListener('mouseup', (event) => {
+      console.log(event);
+      if (this.horse.isDrag) {
+        // переопределение позиции коня для корректной подсветки и растановке на поле
+        this.board.cells.forEach(element => {
+          if ((element.domElement.getBoundingClientRect().top - this.horse.domElement.getBoundingClientRect().top) < this.horse.correctionInfo &&
+            (element.domElement.getBoundingClientRect().left - this.horse.domElement.getBoundingClientRect().left) < this.horse.correctionInfo &&
+            (element.domElement.getBoundingClientRect().right - this.horse.domElement.getBoundingClientRect().right) < this.horse.correctionInfo &&
+            (element.domElement.getBoundingClientRect().bottom - this.horse.domElement.getBoundingClientRect().bottom) < this.horse.correctionInfo) {
+            // определяем над какой ячейкой конь
+            this.currentCell = element.id;
+          }
+        })
+        console.log(this.currentCell);
+        //Передвигаем точно коня в центр дропнутой ячейки и обновляем  информацию коня
+        this.moveHorse(this.board.cells[this.currentCell].domElement.getBoundingClientRect().x, this.board.cells[this.currentCell].domElement.getBoundingClientRect().y);
+        this.horse.boardPosX = this.board.cells[this.currentCell].boardPosX;
+        this.horse.boardPosY = this.board.cells[this.currentCell].boardPosY;
+        // окончание дропа
+        this.horse.isDrag = false;
+        //повторно подсвечиваем ячейки для возможного передвижения после Дропа
+        this.highlightVariant();
+      }
+    })
+
+
   },
 
 
