@@ -121,7 +121,7 @@ let Chess = {
     });
 
     //Клик мышки по коню (grad & drop)
-    document.addEventListener('mousedown', (event) => {
+    this.horse.domElement.addEventListener('mousedown', (event) => {
       if (event.target.classList.contains('horse')) {
         this.horse.isDrag = true;
         //удаляем подсветку если нажали на коня и готовы передвинуть его
@@ -139,7 +139,7 @@ let Chess = {
     })
 
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
-    document.addEventListener('mouseup', (event) => {
+    this.horse.domElement.addEventListener('mouseup', (event) => {
       console.log(event);
       if (this.horse.isDrag) {
         // переопределение позиции коня для корректной подсветки и растановке на поле
