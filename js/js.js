@@ -120,13 +120,7 @@ let Chess = {
     this.horse.correctionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2;
     this.horse.correctionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2;
     //  при повернутом телефоне учет адресной строки телефона для позиционирования
-    if (this.mobile && document.body.offsetWidth > document.body.offsetHeight) {
-      this.board.domElement.style.marginTop = '-20px'
-    } else {
-      this.board.domElement.style.marginTop = '0'
-      this.horse.correctionY += -10;
-    }
-
+    
     this.moveChessFigure(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.correctionY);
 
   },
