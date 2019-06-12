@@ -6,7 +6,6 @@ let Chess = {
     this.createHorse();
     this.highlightVariant();
     this.setListeners();
-
   },
 
   getMobileInfo: function () {
@@ -117,16 +116,11 @@ let Chess = {
 
     // поправки на установку коня в нужную ячейку учитывающие ширину и высоту доски и документа
     this.horse.correctionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2;
+    this.horse.correctionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2;
     //  при повернутом телефоне учет адресной строки телефона для позиционирования
-    if (this.mobile && window.screen.orientation.type == 'landscape-primary') {
-      document.body.style.alignItems = 'start';
-      this.board.domElement.style.marginTop = '10px'
-      this.horse.correctionY = 10
-      this.moveHorse(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.domElement.offsetHeight);
-    } else {
-      this.horse.correctionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2;
-      this.moveHorse(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.correctionY);
-    }
+   
+    this.moveChessFigure(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.correctionY);
+    
   },
 
 
@@ -180,7 +174,7 @@ let Chess = {
           var moveOnX = event.changedTouches[0].pageX - this.horse.correctionX;
           var moveOnY = event.changedTouches[0].pageY - this.horse.correctionY;
         }
-        this.moveHorse(moveOnX - this.horse.correctionInfo, moveOnY - this.horse.correctionInfo);
+        this.moveChessFigure(moveOnX - this.horse.correctionInfo, moveOnY - this.horse.correctionInfo);
       }
     })
 
@@ -198,7 +192,7 @@ let Chess = {
           }
         })
         //Передвигаем точно коня в центр дропнутой ячейки и обновляем  информацию коня
-        this.moveHorse(this.board.cells[this.currentCell].domElement.getBoundingClientRect().x - this.horse.correctionX, this.board.cells[this.currentCell].domElement.getBoundingClientRect().y - this.horse.correctionY);
+        this.moveChessFigure(this.board.cells[this.currentCell].domElement.getBoundingClientRect().x - this.horse.correctionX, this.board.cells[this.currentCell].domElement.getBoundingClientRect().y - this.horse.correctionY);
         this.horse.boardPosX = this.board.cells[this.currentCell].boardPosX;
         this.horse.boardPosY = this.board.cells[this.currentCell].boardPosY;
         // окончание дропа
@@ -210,7 +204,7 @@ let Chess = {
   },
 
 
-  moveHorse: function (newX, newY) {
+  moveChessFigure: function (newX, newY) {
     // перемещение коня на позицию с учетом поправки
     this.horse.domElement.style.left = newX + 'px';
     this.horse.domElement.style.top = newY + 'px';
@@ -248,10 +242,15 @@ let Chess = {
       // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
       this.currentCell = element.id;
 
-      this.moveHorse(element.domElement.getBoundingClientRect().x - this.horse.correctionX, element.domElement.getBoundingClientRect().y - this.horse.correctionY);
+      this.moveChessFigure(element.domElement.getBoundingClientRect().x - this.horse.correctionX, element.domElement.getBoundingClientRect().y - this.horse.correctionY);
 
       this.highlightVariant();
     }
+  },
+
+  // кнопка создания пешки 
+  createPawnBtn: function () {
+
   }
 }
 
