@@ -155,13 +155,14 @@ let Chess = {
       }
     })
 
-    document.addEventListener(dragMove, (event) => {
+    this.board.domElement.addEventListener(dragMove, (event) => {
       if (this.horse.isDrag) {
         // вызов ф-и передвижения коня следом за курсором мыши ((курсор всегда по центру коня)) с учетом проверки ПК или нет
         if (mouseDrag) {
           var moveOnX = event.pageX;
           var moveOnY = event.pageY;
         } else {
+          //определение координат при использовании тача
           var moveOnX = event.changedTouches[0].pageX;
           var moveOnY = event.changedTouches[0].pageY;
         }
