@@ -23,8 +23,8 @@ let Chess = {
     // условие для всегда правильного квадрата
     if ((/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) && (document.body.offsetWidth >= document.body.offsetHeight)) {
       // код для мобильных устройств (для правки смещения коня)
-      this.board.domElement.style.width = '70vh';
-      this.board.domElement.style.height = '70vh';
+      this.board.domElement.style.width = '65vh';
+      this.board.domElement.style.height = '65vh';
     } else {
       // код для других устройств
       if (document.body.offsetWidth >= document.body.offsetHeight) {
