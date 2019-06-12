@@ -1,12 +1,19 @@
 let Chess = {
   init: function () {
+    this.getMobileInfo();
     this.createBoard();
     this.createCells();
     this.createHorse();
     this.highlightVariant();
     this.setListeners();
+
   },
 
+  getMobileInfo: function () {
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      this.mobile = true;
+    }
+  },
 
   //создание доски и вызов ф-и которая определяет размеры блока;
   createBoard: function () {
@@ -21,7 +28,7 @@ let Chess = {
 
   setBoardSize: function () {
     // условие для всегда правильного квадрата
-    if ((/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) && (document.body.offsetWidth >= document.body.offsetHeight)) {
+    if (this.mobile && (document.body.offsetWidth >= document.body.offsetHeight)) {
       // код для мобильных устройств (для правки смещения коня)
       this.board.domElement.style.width = '80vh';
       this.board.domElement.style.height = '80vh';
@@ -106,13 +113,20 @@ let Chess = {
     this.horse.boardPosY = this.board.cells[this.currentCell].boardPosY;
 
     // информация для центрированния курсора при захвате
-    this.horse.correctionInfo = this.horse.domElement.offsetWidth / 2
+    this.horse.correctionInfo = this.horse.domElement.offsetWidth / 2;
+
     // поправки на установку коня в нужную ячейку учитывающие ширину и высоту доски и документа
-    this.horse.correctionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2
-    this.horse.correctionY = 10
-
-
-    this.moveHorse(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.correctionY);
+    this.horse.correctionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2;
+    //  при повернутом телефоне учет адресной строки телефона для позиционирования
+    if (this.mobile && window.screen.orientation.type == 'landscape-primary') {
+      document.body.style.alignItems = 'start';
+      this.board.domElement.style.marginTop = '10px'
+      this.horse.correctionY = 10
+      this.moveHorse(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.domElement.offsetHeight);
+    } else {
+      this.horse.correctionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2;
+      this.moveHorse(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.correctionY);
+    }
   },
 
 
@@ -131,7 +145,7 @@ let Chess = {
     });
 
     // проверка на устройство и корректировка условий Drag&Drop
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    if (this.mobile) {
       // код для мобильных устройств
       var dragStart = 'touchstart';
       var dragMove = 'touchmove';
@@ -234,12 +248,11 @@ let Chess = {
       // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
       this.currentCell = element.id;
 
-      this.moveHorse(element.domElement.getBoundingClientRect().x - this.horse.correctionX, element.domElement.getBoundingClientRect().y-this.horse.correctionY);
+      this.moveHorse(element.domElement.getBoundingClientRect().x - this.horse.correctionX, element.domElement.getBoundingClientRect().y - this.horse.correctionY);
 
       this.highlightVariant();
     }
-  },
-
+  }
 }
 
 
