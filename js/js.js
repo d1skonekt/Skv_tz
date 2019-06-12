@@ -29,8 +29,8 @@ let Chess = {
     // условие для всегда правильного квадрата
     if (this.mobile && (document.body.offsetWidth >= document.body.offsetHeight)) {
       // код для мобильных устройств (для правки смещения коня)
-      this.board.domElement.style.width = '75vh';
-      this.board.domElement.style.height = '75vh';
+      this.board.domElement.style.width = '80vh';
+      this.board.domElement.style.height = '80vh';
     } else {
       // код для других устройств
       if (document.body.offsetWidth >= document.body.offsetHeight) {
@@ -90,7 +90,7 @@ let Chess = {
     this.horse.domElement = document.createElement('div');
     this.horse.domElement.classList.add('horse');
     this.board.domElement.appendChild(this.horse.domElement);
-
+    
     // рандомизируем первое место при загрузке страницы для коня
     this.currentCell = Math.round(Math.random() * 63);
 
@@ -106,8 +106,8 @@ let Chess = {
     //присвоение позициям X,Y для постановки на доску
     this.horse.posinionX = this.board.cells[this.currentCell].domElement.getBoundingClientRect().left;
     this.horse.posinionY = this.board.cells[this.currentCell].domElement.getBoundingClientRect().top;
-    console.log(this.board.cells[this.currentCell].domElement.getBoundingClientRect().top)
-    console.log(this.currentCell);
+   
+
     // определение позиции на шахматной доске
     this.horse.boardPosX = this.board.cells[this.currentCell].boardPosX;
     this.horse.boardPosY = this.board.cells[this.currentCell].boardPosY;
