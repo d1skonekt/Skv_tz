@@ -130,8 +130,22 @@ let Chess = {
       });
     });
 
+    // проверка на устройство и корректировка условий Drag&Drop
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      // код для мобильных устройств
+      var dragStart = 'touchstart';
+      var dragMove = 'touchmove';
+      var dropEnd = 'touchend';
+
+    } else {
+      var dragStart = 'mousedown';
+      var dragMove = 'mousemove';
+      var dropEnd = 'mouseup';
+      var mouseDrag = true;
+    }
+
     //Клик мышки по коню (grad & drop)
-    this.horse.domElement.addEventListener('mousedown', (event) => {
+    this.horse.domElement.addEventListener(dragStart, (event) => {
       if (event.target.classList.contains('horse')) {
         this.horse.isDrag = true;
         //удаляем подсветку если нажали на коня и готовы передвинуть его
@@ -141,16 +155,22 @@ let Chess = {
       }
     })
 
-    document.addEventListener('mousemove', (event) => {
+    document.addEventListener(dragMove, (event) => {
       if (this.horse.isDrag) {
-        // вызов ф-и передвижения коня следом за курсором мыши ((курсор всегда по центру коня))
-        this.moveHorse(event.pageX - this.horse.correctionInfo, event.pageY - this.horse.correctionInfo);
+        // вызов ф-и передвижения коня следом за курсором мыши ((курсор всегда по центру коня)) с учетом проверки ПК или нет
+        if (mouseDrag) {
+          var moveOnX = event.pageX;
+          var moveOnY = event.pageY;
+        } else {
+          var moveOnX = event.changedTouches[0].pageX;
+          var moveOnY = event.changedTouches[0].pageY;
+        }
+        this.moveHorse(moveOnX - this.horse.correctionInfo, moveOnY - this.horse.correctionInfo);
       }
     })
 
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
-    this.horse.domElement.addEventListener('mouseup', (event) => {
-      console.log(event);
+    this.horse.domElement.addEventListener(dropEnd, () => {
       if (this.horse.isDrag) {
         // переопределение позиции коня для корректной подсветки и растановке на поле
         this.board.cells.forEach(element => {
@@ -162,7 +182,6 @@ let Chess = {
             this.currentCell = element.id;
           }
         })
-        console.log(this.currentCell);
         //Передвигаем точно коня в центр дропнутой ячейки и обновляем  информацию коня
         this.moveHorse(this.board.cells[this.currentCell].domElement.getBoundingClientRect().x, this.board.cells[this.currentCell].domElement.getBoundingClientRect().y);
         this.horse.boardPosX = this.board.cells[this.currentCell].boardPosX;
