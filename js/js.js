@@ -27,20 +27,19 @@ let Chess = {
 
   setBoardSize: function () {
     // условие для всегда правильного квадрата
-    if (this.mobile && (document.body.offsetWidth >= document.body.offsetHeight)) {
+    if (this.mobile) {
       // код для мобильных устройств (для правки смещения коня)
-      this.board.domElement.style.width = '80vh';
-      this.board.domElement.style.height = '80vh';
-    } else {
-      // код для других устройств
-      if (document.body.offsetWidth >= document.body.offsetHeight) {
-        this.board.domElement.style.width = '90vh';
-        this.board.domElement.style.height = '90vh';
-      } else {
-        this.board.domElement.style.width = '90vw';
-        this.board.domElement.style.height = '90vw';
-      }
+      window.scroll(0, 20);
     }
+    // код для других устройств
+    if (document.body.offsetWidth >= document.body.offsetHeight) {
+      this.board.domElement.style.width = '90vh';
+      this.board.domElement.style.height = '90vh';
+    } else {
+      this.board.domElement.style.width = '90vw';
+      this.board.domElement.style.height = '90vw';
+    }
+
 
     // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
     this.defaultSize = this.board.domElement.offsetWidth;
@@ -90,7 +89,7 @@ let Chess = {
     this.horse.domElement = document.createElement('div');
     this.horse.domElement.classList.add('horse');
     this.board.domElement.appendChild(this.horse.domElement);
-    
+
     // рандомизируем первое место при загрузке страницы для коня
     this.currentCell = Math.round(Math.random() * 63);
 
@@ -106,7 +105,7 @@ let Chess = {
     //присвоение позициям X,Y для постановки на доску
     this.horse.posinionX = this.board.cells[this.currentCell].domElement.getBoundingClientRect().left;
     this.horse.posinionY = this.board.cells[this.currentCell].domElement.getBoundingClientRect().top;
-   
+
 
     // определение позиции на шахматной доске
     this.horse.boardPosX = this.board.cells[this.currentCell].boardPosX;
@@ -120,7 +119,7 @@ let Chess = {
     this.horse.correctionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2;
     this.horse.correctionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2;
     //  при повернутом телефоне учет адресной строки телефона для позиционирования
-    
+
     this.moveChessFigure(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.correctionY);
 
   },
