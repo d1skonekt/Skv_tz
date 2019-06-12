@@ -21,7 +21,7 @@ let Chess = {
 
   setBoardSize: function () {
     // условие для всегда правильного квадрата
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    if ((/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) && (document.body.offsetWidth >= document.body.offsetHeight)) {
       // код для мобильных устройств (для правки смещения коня)
       this.board.domElement.style.width = '60vh';
       this.board.domElement.style.height = '60vh';
