@@ -23,8 +23,8 @@ let Chess = {
     // условие для всегда правильного квадрата
     if ((/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) && (document.body.offsetWidth >= document.body.offsetHeight)) {
       // код для мобильных устройств (для правки смещения коня)
-      this.board.domElement.style.width = '60vh';
-      this.board.domElement.style.height = '60vh';
+      this.board.domElement.style.width = '80vh';
+      this.board.domElement.style.height = '80vh';
     } else {
       // код для других устройств
       if (document.body.offsetWidth >= document.body.offsetHeight) {
@@ -109,7 +109,7 @@ let Chess = {
     this.horse.correctionInfo = this.horse.domElement.offsetWidth / 2
     // поправки на установку коня в нужную ячейку учитывающие ширину и высоту доски и документа
     this.horse.correctionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2
-    this.horse.correctionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2
+    this.horse.correctionY = 10
 
 
     this.moveHorse(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.correctionY);
