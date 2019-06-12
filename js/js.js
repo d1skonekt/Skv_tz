@@ -30,7 +30,7 @@ let Chess = {
     if (this.mobile) {
       // код для мобильных устройств (для правки смещения коня)
       window.scrollTo(0,1);
-      document.body.style.position = 'fixed'
+      // document.body.style.position = 'fixed';
     }
     // код для других устройств
     if (document.body.offsetWidth >= document.body.offsetHeight) {
