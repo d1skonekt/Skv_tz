@@ -29,8 +29,8 @@ let Chess = {
     // условие для всегда правильного квадрата
     if (this.mobile && (document.body.offsetWidth >= document.body.offsetHeight)) {
       // код для мобильных устройств (для правки смещения коня)
-      this.board.domElement.style.width = '80vh';
-      this.board.domElement.style.height = '80vh';
+      this.board.domElement.style.width = '75vh';
+      this.board.domElement.style.height = '75vh';
     } else {
       // код для других устройств
       if (document.body.offsetWidth >= document.body.offsetHeight) {
@@ -104,9 +104,10 @@ let Chess = {
     this.horse.domElement.style.height = this.horse.domElement.style.width;
 
     //присвоение позициям X,Y для постановки на доску
-    this.horse.posinionX = this.board.cells[this.currentCell].domElement.getBoundingClientRect().x;
-    this.horse.posinionY = this.board.cells[this.currentCell].domElement.getBoundingClientRect().y;
-
+    this.horse.posinionX = this.board.cells[this.currentCell].domElement.getBoundingClientRect().left;
+    this.horse.posinionY = this.board.cells[this.currentCell].domElement.getBoundingClientRect().top;
+    console.log(this.board.cells[this.currentCell].domElement.getBoundingClientRect().top)
+    console.log(this.currentCell);
     // определение позиции на шахматной доске
     this.horse.boardPosX = this.board.cells[this.currentCell].boardPosX;
     this.horse.boardPosY = this.board.cells[this.currentCell].boardPosY;
@@ -115,12 +116,19 @@ let Chess = {
     this.horse.correctionInfo = this.horse.domElement.offsetWidth / 2;
 
     // поправки на установку коня в нужную ячейку учитывающие ширину и высоту доски и документа
+
     this.horse.correctionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2;
     this.horse.correctionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2;
     //  при повернутом телефоне учет адресной строки телефона для позиционирования
-   
+    if (this.mobile && document.body.offsetWidth > document.body.offsetHeight) {
+      this.board.domElement.style.marginTop = '-20px'
+    } else {
+      this.board.domElement.style.marginTop = '0'
+      this.horse.correctionY += -10;
+    }
+
     this.moveChessFigure(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.correctionY);
-    
+
   },
 
 
