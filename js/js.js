@@ -248,6 +248,8 @@ let Chess = {
 }
 
 
+
+
 // запуск после прогрузки всех dom елементов 
 document.addEventListener('DOMContentLoaded', function () {
   Chess.init();

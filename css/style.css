@@ -7,6 +7,7 @@ body{
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    position: fixed;
     
 }
 .wrapper_field{
