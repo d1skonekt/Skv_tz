@@ -21,14 +21,6 @@ let Chess = {
 
   setBoardSize: function () {
     // условие для всегда правильного квадрата
-    if ((/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) && (document.body.offsetWidth >= document.body.offsetHeight)) {
-      // код для мобильных устройств (для правки смещения коня)
-      this.board.domElement.style.width = '70vh';
-      this.board.domElement.style.height = '70vh';
-      document.body.style.alignItems = 'start';
-      this.board.domElement.style.marginTop = '10px';
-    } else {
-      // код для других устройств
       if (document.body.offsetWidth >= document.body.offsetHeight) {
         this.board.domElement.style.width = '90vh';
         this.board.domElement.style.height = '90vh';
@@ -36,9 +28,6 @@ let Chess = {
         this.board.domElement.style.width = '90vw';
         this.board.domElement.style.height = '90vw';
       }
-    }
-
-
     // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
     this.defaultSize = this.board.domElement.offsetWidth;
   },
@@ -109,9 +98,14 @@ let Chess = {
     this.horse.boardPosX = this.board.cells[this.currentCell].boardPosX;
     this.horse.boardPosY = this.board.cells[this.currentCell].boardPosY;
 
-    this.horse.correctionInfo = this.horse.domElement.offsetWidth / 2
+    // информация для центрированния курсора при захвате
+    this.horse.correctionInfo = this.horse.domElement.offsetWidth / 2 
+    // поправки на установку коня в нужную ячейку учитывающие ширину и высоту доски и документа
+    this.horse.correctionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2 
+    this.horse.correctionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2
 
-    this.moveHorse(this.horse.posinionX, this.horse.posinionY);
+
+    this.moveHorse(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.correctionY);
 
   },
 
@@ -159,12 +153,12 @@ let Chess = {
       if (this.horse.isDrag) {
         // вызов ф-и передвижения коня следом за курсором мыши ((курсор всегда по центру коня)) с учетом проверки ПК или нет
         if (mouseDrag) {
-          var moveOnX = event.pageX;
-          var moveOnY = event.pageY;
+          var moveOnX = event.pageX - this.horse.correctionX;
+          var moveOnY = event.pageY - this.horse.correctionY;
         } else {
           //определение координат при использовании тача
-          var moveOnX = event.changedTouches[0].pageX;
-          var moveOnY = event.changedTouches[0].pageY;
+          var moveOnX = event.changedTouches[0].pageX - this.horse.correctionX;
+          var moveOnY = event.changedTouches[0].pageY - this.horse.correctionY;
         }
         this.moveHorse(moveOnX - this.horse.correctionInfo, moveOnY - this.horse.correctionInfo);
       }
@@ -184,7 +178,7 @@ let Chess = {
           }
         })
         //Передвигаем точно коня в центр дропнутой ячейки и обновляем  информацию коня
-        this.moveHorse(this.board.cells[this.currentCell].domElement.getBoundingClientRect().x, this.board.cells[this.currentCell].domElement.getBoundingClientRect().y);
+        this.moveHorse(this.board.cells[this.currentCell].domElement.getBoundingClientRect().x - this.horse.correctionX, this.board.cells[this.currentCell].domElement.getBoundingClientRect().y - this.horse.correctionY);
         this.horse.boardPosX = this.board.cells[this.currentCell].boardPosX;
         this.horse.boardPosY = this.board.cells[this.currentCell].boardPosY;
         // окончание дропа

@@ -6,13 +6,13 @@ body{
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
+    overflow: hidden;
     
 }
 .wrapper_field{
     display: flex;
     flex-wrap: wrap;
-    /* position: relative; */
+    position: relative;
 }
 .chess_cell {
     width: 12.5%;
