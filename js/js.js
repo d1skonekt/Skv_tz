@@ -21,19 +21,16 @@ let Chess = {
 
   setBoardSize: function () {
     // условие для всегда правильного квадрата
-    if ((/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) && (document.body.offsetWidth >= document.body.offsetHeight)) {
-      // код для мобильных устройств (для правки смещения коня)
-      this.board.domElement.style.width = '65vh';
-      this.board.domElement.style.height = '65vh';
+    if (document.body.offsetWidth >= document.body.offsetHeight) {
+      this.board.domElement.style.width = '90vh';
+      this.board.domElement.style.height = '90vh';
     } else {
-      // код для других устройств
-      if (document.body.offsetWidth >= document.body.offsetHeight) {
-        this.board.domElement.style.width = '90vh';
-        this.board.domElement.style.height = '90vh';
-      } else {
-        this.board.domElement.style.width = '90vw';
-        this.board.domElement.style.height = '90vw';
-      }
+      this.board.domElement.style.width = '90vw';
+      this.board.domElement.style.height = '90vw';
+    }
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      // код для мобильных устройств (для правки смещения коня)
+      document.body.requestFullscreen();
     }
 
     // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
