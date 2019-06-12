@@ -22,9 +22,11 @@ let Chess = {
   setBoardSize: function () {
     // условие для всегда правильного квадрата
     if ((/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) && (document.body.offsetWidth >= document.body.offsetHeight)) {
-      // код для мобильных устройств 
+      // код для мобильных устройств (для правки смещения коня)
       this.board.domElement.style.width = '70vh';
       this.board.domElement.style.height = '70vh';
+      document.body.style.alignItems = 'start';
+      this.board.domElement.style.marginTop = '20px';
     } else {
       // код для других устройств
       if (document.body.offsetWidth >= document.body.offsetHeight) {
