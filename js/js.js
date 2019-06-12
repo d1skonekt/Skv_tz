@@ -89,7 +89,6 @@ let Chess = {
     this.currentCell = Math.round(Math.random() * 63);
 
     this.setHorseParams();
-
   },
 
 
@@ -114,7 +113,6 @@ let Chess = {
 
 
     this.moveHorse(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.correctionY);
-
   },
 
 
@@ -195,8 +193,6 @@ let Chess = {
         this.highlightVariant();
       }
     })
-
-
   },
 
 
@@ -204,7 +200,6 @@ let Chess = {
     // перемещение коня на позицию с учетом поправки
     this.horse.domElement.style.left = newX + 'px';
     this.horse.domElement.style.top = newY + 'px';
-
   },
 
 
@@ -239,7 +234,7 @@ let Chess = {
       // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
       this.currentCell = element.id;
 
-      this.moveHorse(element.domElement.getBoundingClientRect().x, element.domElement.getBoundingClientRect().y);
+      this.moveHorse(element.domElement.getBoundingClientRect().x - this.horse.correctionX, element.domElement.getBoundingClientRect().y-this.horse.correctionY);
 
       this.highlightVariant();
     }
