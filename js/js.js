@@ -26,7 +26,7 @@ let Chess = {
       this.board.domElement.style.width = '70vh';
       this.board.domElement.style.height = '70vh';
       document.body.style.alignItems = 'start';
-      this.board.domElement.style.marginTop = '20px';
+      this.board.domElement.style.marginTop = '10px';
     } else {
       // код для других устройств
       if (document.body.offsetWidth >= document.body.offsetHeight) {
