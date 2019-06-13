@@ -29,11 +29,11 @@ let Chess = {
     // условие для всегда правильного квадрата
    
       if (document.body.offsetWidth >= document.body.offsetHeight) {
-        this.board.domElement.style.width = document.body.offsetHeight * 0.9 + 'px'
-        this.board.domElement.style.height = document.body.offsetHeight * 0.9 + 'px'
+        this.board.domElement.style.width = window.innerHeight * 0.9 + 'px'
+        this.board.domElement.style.height = window.innerHeight * 0.9 + 'px'
       } else {
-        this.board.domElement.style.width = document.body.offsetWidth * 0.9 + 'px'
-        this.board.domElement.style.height = document.body.offsetWidth * 0.9 + 'px'
+        this.board.domElement.style.width = window.innerWidth * 0.9 + 'px'
+        this.board.domElement.style.height = window.innerWidth * 0.9 + 'px'
       }
 
 
