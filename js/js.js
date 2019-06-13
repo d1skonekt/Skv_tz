@@ -27,19 +27,16 @@ let Chess = {
 
   setBoardSize: function () {
     // условие для всегда правильного квадрата
-    if (this.mobile && (document.body.offsetWidth > document.body.offsetHeight)) {
-      this.board.domElement.style.width = '65vh';
-      this.board.domElement.style.height = '65vh';
-    } else {
+   
       if (document.body.offsetWidth >= document.body.offsetHeight) {
-        this.board.domElement.style.width = '90vh';
-        this.board.domElement.style.height = '90vh';
+        this.board.domElement.style.width = document.body.offsetHeight * 0.9 + 'px'
+        this.board.domElement.style.height = document.body.offsetHeight * 0.9 + 'px'
       } else {
-        this.board.domElement.style.width = '90vw';
-        this.board.domElement.style.height = '90vw';
+        this.board.domElement.style.width = document.body.offsetWidth * 0.9 + 'px'
+        this.board.domElement.style.height = document.body.offsetWidth * 0.9 + 'px'
       }
 
-    }
+
 
     // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
     this.defaultSize = this.board.domElement.offsetWidth;
