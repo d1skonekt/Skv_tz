@@ -10,7 +10,7 @@ body{
     align-items: center;
     justify-content: center;
     /* position: fixed; */
-    
+    overscroll-behavior: none;        
 }
 .wrapper_field{
     display: flex;
