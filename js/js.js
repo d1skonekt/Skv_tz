@@ -152,6 +152,7 @@ let Chess = {
 
     //Клик мышки по коню (grad & drop)
     this.horse.domElement.addEventListener(dragStart, (event) => {
+      document.body.style.overscrollBehavior = 'none';
       if (event.target.classList.contains('horse')) {
         this.horse.isDrag = true;
         //удаляем подсветку если нажали на коня и готовы передвинуть его
@@ -178,6 +179,7 @@ let Chess = {
 
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
     this.horse.domElement.addEventListener(dropEnd, () => {
+      document.body.style.overscrollBehavior = 'auto';
       if (this.horse.isDrag) {
         // переопределение позиции коня для корректной подсветки и растановке на поле
         this.board.cells.forEach(element => {
