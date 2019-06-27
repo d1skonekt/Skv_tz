@@ -6,7 +6,6 @@ let Chess = {
     this.createHorse();
     this.highlightVariant();
     this.setListeners();
-    this.fullscreen();
   },
 
   getMobileInfo: function () {
@@ -254,18 +253,7 @@ let Chess = {
   },
 
 
-  fullscreen: function () {
-    document.querySelector('.fullscreen_btn').addEventListener('click', () => {
-      if (!this.fullscreenInfo) {
-        document.body.webkitRequestFullScreen();
-        this.fullscreenInfo = true;
-      } else {
-        document.exitFullscreen();
-        this.fullscreenInfo = false;
-      }
-
-    })
-  }
+  
 }
 
 
