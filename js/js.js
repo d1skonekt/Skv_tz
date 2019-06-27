@@ -6,6 +6,7 @@ let Chess = {
     this.createHorse();
     this.highlightVariant();
     this.setListeners();
+    this.fullscreen();
   },
 
   getMobileInfo: function () {
@@ -27,14 +28,14 @@ let Chess = {
 
   setBoardSize: function () {
     // условие для всегда правильного квадрата
-   
-      if (document.body.offsetWidth >= document.body.offsetHeight) {
-        this.board.domElement.style.width = window.innerHeight * 0.9 + 'px'
-        this.board.domElement.style.height = window.innerHeight * 0.9 + 'px'
-      } else {
-        this.board.domElement.style.width = window.innerWidth * 0.9 + 'px'
-        this.board.domElement.style.height = window.innerWidth * 0.9 + 'px'
-      }
+
+    if (document.body.offsetWidth >= document.body.offsetHeight) {
+      this.board.domElement.style.width = window.innerHeight * 0.9 + 'px'
+      this.board.domElement.style.height = window.innerHeight * 0.9 + 'px'
+    } else {
+      this.board.domElement.style.width = window.innerWidth * 0.9 + 'px'
+      this.board.domElement.style.height = window.innerWidth * 0.9 + 'px'
+    }
 
 
 
@@ -246,9 +247,24 @@ let Chess = {
     }
   },
 
+
   // кнопка создания пешки 
   createPawnBtn: function () {
 
+  },
+
+
+  fullscreen: function () {
+    document.querySelector('.fullscreen_btn').addEventListener('click', () => {
+      if (!this.fullscreenInfo) {
+        document.body.webkitRequestFullScreen();
+        this.fullscreenInfo = true;
+      } else {
+        document.exitFullscreen();
+        this.fullscreenInfo = false;
+      }
+
+    })
   }
 }
 
