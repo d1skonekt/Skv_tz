@@ -257,25 +257,29 @@ let Chess = {
 
   // обработка запуска фулскрина на телефоне
   runMobileFullscreen: function () {
-    // проверка условия телефон ли
-    if (this.mobile) {
-      // запись координаты Y при первом таче на Body
-      document.body.addEventListener('touchstart', (event) => {
-        this.mobileFullscreenY = event.changedTouches[0].pageY
-        console.log(event.target);
-      })
+    // // проверка условия телефон ли
+    // if (this.mobile) {
+    //   // запись координаты Y при первом таче на Body
+    //   document.body.addEventListener('touchstart', (event) => {
+    //     this.mobileFullscreenY = event.changedTouches[0].pageY
+    //     console.log(event.target);
+    //   })
 
-      //При движении тача cнизy ввepx запускается ф-я фулскрина с проверкой 
-      document.body.addEventListener('touchend', (event) => {
-        if (event.changedTouches[0].pageY < this.mobileFullscreenY && !this.mobileFullscreenInfo && event.target.tagName == 'BODY') {
-          document.body.webkitRequestFullScreen();
-          this.mobileFullscreenInfo = true;
-        } else {
-          document.exitFullscreen();
-          this.mobileFullscreenInfo = false;
-        }
-      })
-    }
+    //   //При движении тача cнизy ввepx запускается ф-я фулскрина с проверкой 
+    //   document.body.addEventListener('touchend', (event) => {
+    //     if (event.changedTouches[0].pageY < this.mobileFullscreenY && !this.mobileFullscreenInfo && event.target.tagName == 'BODY') {
+    //       document.body.webkitRequestFullScreen();
+    //       this.mobileFullscreenInfo = true;
+    //     } else {
+    //       document.exitFullscreen();
+    //       this.mobileFullscreenInfo = false;
+    //     }
+    //   })
+    // }
+    // document.body.addEventListener('touchmove', (event) => {
+    //   console.log(event);
+    //   let StartTouchMoveY = event.changedTouches[0].pageY
+    // })
 
   },
 
