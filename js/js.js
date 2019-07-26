@@ -304,6 +304,13 @@ let Chess = {
       }
     });
 
+    //проверка на изменения фулскрина если выход из режима производится стандартными методами
+    document.body.addEventListener("webkitfullscreenchange", function () {
+      // упрощение записи
+      if (this.fullscreenInfo) this.fullscreenInfo = false
+      else this.fullscreenInfo = true;
+    });
+
   },
 
 
