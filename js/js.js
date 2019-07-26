@@ -262,11 +262,12 @@ let Chess = {
       // запись координаты Y при первом таче на Body
       document.body.addEventListener('touchstart', (event) => {
         this.mobileFullscreenY = event.changedTouches[0].pageY
+        console.log(event.target);
       })
 
       //При движении тача cнизy ввepx запускается ф-я фулскрина с проверкой 
       document.body.addEventListener('touchend', (event) => {
-        if (event.changedTouches[0].pageY < this.mobileFullscreenY && !this.mobileFullscreenInfo) {
+        if (event.changedTouches[0].pageY < this.mobileFullscreenY && !this.mobileFullscreenInfo && event.target.tagName == 'BODY') {
           document.body.webkitRequestFullScreen();
           this.mobileFullscreenInfo = true;
         } else {
