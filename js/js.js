@@ -257,29 +257,52 @@ let Chess = {
 
   // обработка запуска фулскрина на телефоне
   runMobileFullscreen: function () {
-    // // проверка условия телефон ли
-    // if (this.mobile) {
-    //   // запись координаты Y при первом таче на Body
-    //   document.body.addEventListener('touchstart', (event) => {
-    //     this.mobileFullscreenY = event.changedTouches[0].pageY
-    //     console.log(event.target);
-    //   })
+    // эмуляция двойного клика по экрану  которая привязана к document.body
+    let downTime, upTime, clicked = 0;
 
-    //   //При движении тача cнизy ввepx запускается ф-я фулскрина с проверкой 
-    //   document.body.addEventListener('touchend', (event) => {
-    //     if (event.changedTouches[0].pageY < this.mobileFullscreenY && !this.mobileFullscreenInfo && event.target.tagName == 'BODY') {
-    //       document.body.webkitRequestFullScreen();
-    //       this.mobileFullscreenInfo = true;
-    //     } else {
-    //       document.exitFullscreen();
-    //       this.mobileFullscreenInfo = false;
-    //     }
-    //   })
-    // }
-    // document.body.addEventListener('touchmove', (event) => {
-    //   console.log(event);
-    //   let StartTouchMoveY = event.changedTouches[0].pageY
-    // })
+
+    document.body.addEventListener('touchstart', (event) => {
+      if (event.target.tagName === 'BODY') {
+        //проверка на первый клик
+        if (clicked === 0) {
+          downTime = Date.now()
+          clicked = 1;
+          //проверка на 2й клик и принятие решения это обычный клик или нет
+        } else if (clicked === 1) {
+          checkCkick = Date.now()
+          if (checkCkick - downTime < 1000) {
+            clicked = 2;
+          } else {
+            clicked = 1;
+            downTime = Date.now()
+          }
+        }
+      }
+    });
+
+    document.body.addEventListener('touchend', (event) => {
+      //если это двойной клик то вызвать фулскрин при условии что он не вызван
+      if (event.target.tagName === 'BODY') {
+        if (clicked === 2) {
+          upTime = Date.now()
+          if (upTime - downTime < 1500) {
+            console.log('dblCkick')
+            clicked = 0;
+            if (!this.fullscreenInfo) {
+              document.body.webkitRequestFullScreen();
+              this.fullscreenInfo = true;
+              //если уже находимся в фулскрине  , то выйти из него
+            } else {
+              document.exitFullscreen();
+              this.fullscreenInfo = false;
+            }
+            // сброс счетчика кликера если 2е отжатие затянулось ( что практически нереально )
+          } else {
+            clicked = 0;
+          }
+        }
+      }
+    });
 
   },
 
