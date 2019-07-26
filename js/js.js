@@ -6,11 +6,13 @@ let Chess = {
     this.createHorse();
     this.highlightVariant();
     this.setListeners();
+    this.runMobileFullscreen();
   },
 
   getMobileInfo: function () {
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
       this.mobile = true;
+      this.mobileFullscreenInfo = false;
     }
   },
 
@@ -142,7 +144,6 @@ let Chess = {
       var dragStart = 'touchstart';
       var dragMove = 'touchmove';
       var dropEnd = 'touchend';
-
     } else {
       var dragStart = 'mousedown';
       var dragMove = 'mousemove';
@@ -254,8 +255,30 @@ let Chess = {
 
   },
 
+  // обработка запуска фулскрина на телефоне
+  runMobileFullscreen: function () {
+    // проверка условия телефон ли
+    if (this.mobile) {
+      // запись координаты Y при первом таче на Body
+      document.body.addEventListener('touchstart', (event) => {
+        this.mobileFullscreenY = event.changedTouches[0].pageY
+      })
 
-  
+      //При движении тача cнизy ввepx запускается ф-я фулскрина с проверкой 
+      document.body.addEventListener('touchend', (event) => {
+        if (event.changedTouches[0].pageY < this.mobileFullscreenY && !this.mobileFullscreenInfo) {
+          document.body.webkitRequestFullScreen();
+          this.mobileFullscreenInfo = true;
+        } else {
+          document.exitFullscreen();
+          this.mobileFullscreenInfo = false;
+        }
+      })
+    }
+
+  },
+
+
 }
 
 
