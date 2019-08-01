@@ -133,8 +133,8 @@ let Chess = {
 
     // добавление события клика на каждый элемент ячейки (ход коня + подсветка следующего варианта)
     this.board.cells.forEach(element => {
-      element.domElement.addEventListener('click', () => {
-        this.clickOnVariantJump(element);
+      element.domElement.addEventListener('click', (event) => {
+        this.clickOnVariantJump(element, event);
       });
     });
 
@@ -206,9 +206,10 @@ let Chess = {
 
 
   moveChessFigure: function (newX, newY) {
-    // перемещение коня на позицию с учетом поправки
+    // перемещение фигуры  коня на позицию с учетом поправки (если надо)
     this.horse.domElement.style.left = newX + 'px';
     this.horse.domElement.style.top = newY + 'px';
+
   },
 
 
@@ -235,7 +236,7 @@ let Chess = {
 
 
   //перемещение коня по клику на новую позицию с заменой данных
-  clickOnVariantJump: function (element) {
+  clickOnVariantJump: function (element, event) {
     if (element.domElement.classList.contains('variant_for_jump')) {
 
       this.horse.boardPosX = element.boardPosX;
@@ -243,17 +244,12 @@ let Chess = {
       // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
       this.currentCell = element.id;
 
-      this.moveChessFigure(element.domElement.getBoundingClientRect().x - this.horse.correctionX, element.domElement.getBoundingClientRect().y - this.horse.correctionY);
+      this.animateChessFigure(event);
 
       this.highlightVariant();
     }
   },
 
-
-  // кнопка создания пешки 
-  createPawnBtn: function () {
-
-  },
 
   // обработка запуска фулскрина на телефоне
   runMobileFullscreen: function () {
@@ -306,6 +302,61 @@ let Chess = {
   },
 
 
+  // кнопка создания пешки 
+  createPawnBtn: function () {
+
+  },
+
+
+  //Анимированое перемещение коня буквой Г
+  animateChessFigure: function (event) {
+    let newThis = this;
+    let speed = 5;
+    let currentValueOnTheLeft, currentValueOnTheTop;
+    // значения left , top текущего состояния коня (для того чтобы анимация не начиналась позиции body 0.0)
+    currentValueOnTheLeft = this.horse.domElement.offsetLeft;
+    currentValueOnTheTop = this.horse.domElement.offsetTop;
+
+    //условная скорость анимации (чем меньше - тем быстрее)
+
+    // определение коэффициента сдвига и величину пройденой дистанции
+    horizontalMoveRate = (event.target.offsetLeft - newThis.horse.domElement.offsetLeft) / speed;
+    verticalMoveRate = (event.target.offsetTop - newThis.horse.domElement.offsetTop) / speed;
+    let distanceHorizontMove = 0, distanceVerticalMove = 0;
+    let axis;
+    //определение оси по которой двигаться сначала 
+    if (Math.abs(event.target.offsetLeft - this.horse.domElement.offsetLeft) > Math.abs(event.target.offsetTop - this.horse.domElement.offsetTop)) axis = 'horizontal';
+    else axis = 'vertical'
+
+    function render() {
+      // т.к больший путь надо пройти по горизонтали сначала изменяем св-во left
+      if (axis == 'horizontal') {
+        if (Math.abs(distanceHorizontMove) < Math.abs((horizontalMoveRate * speed))) {
+          distanceHorizontMove += horizontalMoveRate;
+          newThis.horse.domElement.style.left = currentValueOnTheLeft + distanceHorizontMove + 'px';
+          requestAnimationFrame(render)
+        } else if (Math.abs(distanceVerticalMove) < Math.abs((verticalMoveRate * speed))) {
+          distanceVerticalMove += verticalMoveRate;
+          newThis.horse.domElement.style.top = currentValueOnTheTop + distanceVerticalMove + 'px'
+          requestAnimationFrame(render)
+        }
+        // в противном случаее больший путь надо пройти по вертикали и в приоритете изменение св-ва top
+      } else {
+        if (Math.abs(distanceVerticalMove) < Math.abs((verticalMoveRate * speed))) {
+          distanceVerticalMove += verticalMoveRate;
+          newThis.horse.domElement.style.top = currentValueOnTheTop + distanceVerticalMove + 'px'
+          requestAnimationFrame(render)
+        } else if (Math.abs(distanceHorizontMove) < Math.abs((horizontalMoveRate * speed))) {
+          distanceHorizontMove += horizontalMoveRate;
+          newThis.horse.domElement.style.left = currentValueOnTheLeft + distanceHorizontMove + 'px';
+          requestAnimationFrame(render)
+        }
+      }
+    }
+
+    render();
+
+  }
 }
 
 
