@@ -6,9 +6,9 @@ let Chess = {
     this.createHorse();
     this.highlightVariant();
     this.setListeners();
-    this.runMobileFullscreen();
   },
 
+  //ф-я обработки устройсва с которого зашли на сайт
   getMobileInfo: function () {
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
       this.mobile = true;
@@ -19,6 +19,7 @@ let Chess = {
   //создание доски и вызов ф-и которая определяет размеры блока;
   createBoard: function () {
     this.board = {};
+    this.board.cellsCount = 64;
     this.board.domElement = document.createElement('div');
     this.board.domElement.classList.add('wrapper_field');
 
@@ -28,8 +29,7 @@ let Chess = {
 
 
   setBoardSize: function () {
-    // условие для всегда правильного квадрата
-
+    // условие для всегда правильного квадрата и размера доски 90% от миннимального параметра экрана( высоты или ширины)
     if (document.body.offsetWidth >= document.body.offsetHeight) {
       this.board.domElement.style.width = window.innerHeight * 0.9 + 'px'
       this.board.domElement.style.height = window.innerHeight * 0.9 + 'px'
@@ -37,9 +37,6 @@ let Chess = {
       this.board.domElement.style.width = window.innerWidth * 0.9 + 'px'
       this.board.domElement.style.height = window.innerWidth * 0.9 + 'px'
     }
-
-
-
     // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
     this.defaultSize = this.board.domElement.offsetWidth;
   },
@@ -50,14 +47,13 @@ let Chess = {
     //  массив обьектов с параметрами позиции ячейки (x,y) + domElement
     this.board.cells = [];
     let x = 1, y = 8;
-    for (let i = 0; i < 64; i++) {
+    for (let i = 0; i < this.board.cellsCount; i++) {
       this.board.cells[i] = {
         id: i + '',
         domElement: document.createElement('div'),
         isDrag: false
       }
       // вставка в поле каждой отдельной ячейки и присвоение ячейки класса
-
       this.board.domElement.appendChild(this.board.cells[i].domElement);
       this.board.cells[i].domElement.classList.add('chess_cell');
 
@@ -75,8 +71,6 @@ let Chess = {
       } else {
         this.board.cells[i].domElement.classList.add('brown_bg');
       }
-      // Устанавливаем ссылку на js объект в DOM элемент
-      this.board.cells[i].domElement.src = this.board.cells[i];
     }
   },
 
@@ -85,41 +79,40 @@ let Chess = {
   createHorse: function () {
     this.horse = {};
     this.horse.isDrag = false;
+    this.currentCell = {};
     this.horse.domElement = document.createElement('div');
     this.horse.domElement.classList.add('horse');
     this.board.domElement.appendChild(this.horse.domElement);
 
     // рандомизируем первое место при загрузке страницы для коня
-    this.currentCell = Math.round(Math.random() * 63);
+    this.currentCell.id = Math.round(Math.random() * 63);
 
     this.setHorseParams();
   },
 
 
   setHorseParams: function () {
-    // определение ширины/высоты ячейки с конем
+    // определение ширины/высоты ячейки с конем с учетом того , что доска состоит из 8 ячеек а размеры коня(0.124) немного меньше дефолтного значения ячейки (0.125)
     this.horse.domElement.style.width = (this.defaultSize * 0.124) + 'px';
     this.horse.domElement.style.height = this.horse.domElement.style.width;
 
     //присвоение позициям X,Y для постановки на доску
-    this.horse.posinionX = this.board.cells[this.currentCell].domElement.getBoundingClientRect().left;
-    this.horse.posinionY = this.board.cells[this.currentCell].domElement.getBoundingClientRect().top;
-
+    this.horse.posinionX = this.board.cells[this.currentCell.id].domElement.getBoundingClientRect().left;
+    this.horse.posinionY = this.board.cells[this.currentCell.id].domElement.getBoundingClientRect().top;
 
     // определение позиции на шахматной доске
-    this.horse.boardPosX = this.board.cells[this.currentCell].boardPosX;
-    this.horse.boardPosY = this.board.cells[this.currentCell].boardPosY;
+    this.horse.boardPosX = this.board.cells[this.currentCell.id].boardPosX;
+    this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
 
     // информация для центрированния курсора при захвате
-    this.horse.correctionInfo = this.horse.domElement.offsetWidth / 2;
+    this.horse.centeredPosition = this.horse.domElement.offsetWidth / 2;
 
     // поправки на установку коня в нужную ячейку учитывающие ширину и высоту доски и документа
+    this.horse.centeredPositionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2;
+    this.horse.centeredPositionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2;
 
-    this.horse.correctionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2;
-    this.horse.correctionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2;
-    //  при повернутом телефоне учет адресной строки телефона для позиционирования
-
-    this.moveChessFigure(this.horse.posinionX - this.horse.correctionX, this.horse.posinionY - this.horse.correctionY);
+    //перемещение коня в установленную рандомом ячейку
+    this.moveChessFigure(this.horse.posinionX - this.horse.centeredPositionX, this.horse.posinionY - this.horse.centeredPositionY);
 
   },
 
@@ -144,6 +137,7 @@ let Chess = {
       var dragStart = 'touchstart';
       var dragMove = 'touchmove';
       var dropEnd = 'touchend';
+      this.runMobileFullscreen();
     } else {
       var dragStart = 'mousedown';
       var dragMove = 'mousemove';
@@ -165,14 +159,14 @@ let Chess = {
       if (this.horse.isDrag) {
         // вызов ф-и передвижения коня следом за курсором мыши ((курсор всегда по центру коня)) с учетом проверки ПК или нет
         if (mouseDrag) {
-          var moveOnX = event.pageX - this.horse.correctionX;
-          var moveOnY = event.pageY - this.horse.correctionY;
+          var moveOnX = event.pageX - this.horse.centeredPositionX;
+          var moveOnY = event.pageY - this.horse.centeredPositionY;
         } else {
           //определение координат при использовании тача
-          var moveOnX = event.changedTouches[0].pageX - this.horse.correctionX;
-          var moveOnY = event.changedTouches[0].pageY - this.horse.correctionY;
+          var moveOnX = event.changedTouches[0].pageX - this.horse.centeredPositionX;
+          var moveOnY = event.changedTouches[0].pageY - this.horse.centeredPositionY;
         }
-        this.moveChessFigure(moveOnX - this.horse.correctionInfo, moveOnY - this.horse.correctionInfo);
+        this.moveChessFigure(moveOnX - this.horse.centeredPosition, moveOnY - this.horse.centeredPosition);
       }
     })
 
@@ -181,19 +175,23 @@ let Chess = {
       document.body.style.overscrollBehavior = 'auto';
       if (this.horse.isDrag) {
         // переопределение позиции коня для корректной подсветки и растановке на поле
-        this.board.cells.forEach(element => {
-          if ((element.domElement.getBoundingClientRect().top - this.horse.domElement.getBoundingClientRect().top) < this.horse.correctionInfo &&
-            (element.domElement.getBoundingClientRect().left - this.horse.domElement.getBoundingClientRect().left) < this.horse.correctionInfo &&
-            (element.domElement.getBoundingClientRect().right - this.horse.domElement.getBoundingClientRect().right) < this.horse.correctionInfo &&
-            (element.domElement.getBoundingClientRect().bottom - this.horse.domElement.getBoundingClientRect().bottom) < this.horse.correctionInfo) {
+        let horsePosition = this.horse.domElement.getBoundingClientRect();
+        this.board.cells.forEach(cell => {
+          let cellPosition = cell.domElement.getBoundingClientRect();
+
+          if ((cellPosition.top - horsePosition.top) < this.horse.centeredPosition &&
+            (cellPosition.left - horsePosition.left) < this.horse.centeredPosition &&
+            (cellPosition.right - horsePosition.right) < this.horse.centeredPosition &&
+            (cellPosition.bottom - horsePosition.bottom) < this.horse.centeredPosition) {
             // определяем над какой ячейкой конь
-            this.currentCell = element.id;
+            this.currentCell.id = cell.id;
+            this.currentCell.position = cellPosition;
           }
         })
         //Передвигаем точно коня в центр дропнутой ячейки и обновляем  информацию коня
-        this.moveChessFigure(this.board.cells[this.currentCell].domElement.getBoundingClientRect().x - this.horse.correctionX, this.board.cells[this.currentCell].domElement.getBoundingClientRect().y - this.horse.correctionY);
-        this.horse.boardPosX = this.board.cells[this.currentCell].boardPosX;
-        this.horse.boardPosY = this.board.cells[this.currentCell].boardPosY;
+        this.moveChessFigure(this.currentCell.position.x - this.horse.centeredPositionX, this.currentCell.position.y - this.horse.centeredPositionY);
+        this.horse.boardPosX = this.board.cells[this.currentCell.id].boardPosX;
+        this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
         // окончание дропа
         this.horse.isDrag = false;
         //повторно подсвечиваем ячейки для возможного передвижения после Дропа
@@ -245,17 +243,12 @@ let Chess = {
       this.horse.boardPosX = element.boardPosX;
       this.horse.boardPosY = element.boardPosY;
       // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
-      this.currentCell = element.id;
+      this.currentCell.id = element.id;
 
-
+      //останавливаем подсветку во время анимации 
       this.stopHighlightVariant();
+      // просчитываем и передаем информации для анимации (в данном случае коня)
       this.preparationForAnimation(event);
-
-      // this.moveChessFigure(element.domElement.getBoundingClientRect().x - this.horse.correctionX, element.domElement.getBoundingClientRect().y - this.horse.correctionY);
-
-
-
-      // this.highlightVariant();
     }
   },
 
@@ -264,7 +257,6 @@ let Chess = {
   runMobileFullscreen: function () {
     // эмуляция двойного клика по экрану  которая привязана к document.body
     let downTime, upTime, clicked = 0;
-
 
     document.body.addEventListener('touchstart', (event) => {
       if (event.target.tagName === 'BODY') {
@@ -291,15 +283,14 @@ let Chess = {
         if (clicked === 2) {
           upTime = Date.now()
           if (upTime - downTime < 1500) {
-            console.log('dblCkick')
             clicked = 0;
-            if (!this.fullscreenInfo) {
+            if (!this.mobileFullscreenInfo) {
               document.body.webkitRequestFullScreen();
-              this.fullscreenInfo = true;
+              this.mobileFullscreenInfo = true;
               //если уже находимся в фулскрине  , то выйти из него
             } else {
               document.exitFullscreen();
-              this.fullscreenInfo = false;
+              this.mobileFullscreenInfo = false;
             }
             // сброс счетчика кликера если 2е отжатие затянулось ( что практически нереально )
           } else {
@@ -310,20 +301,17 @@ let Chess = {
     });
   },
 
-
+  // создание анимации с помощью промиса по данным которые расчитали
   promiseAnimate: function (elem, property, changeValue, duration) {
-    let startValue, suffix;
     //определяем суфикс (расчеты работают только для px и Nubmer)
-    suffix = changeValue.replace(/[0-9+-.,]/g, '')
-
+    let suffix = changeValue.replace(/[0-9+-.,]/g, '')
     //получаем исходное состояния св-ва которое будем анимировать
-    startValue = parseFloat(window.getComputedStyle(elem).getPropertyValue(property), 10);
+    let startValue = parseFloat(window.getComputedStyle(elem).getPropertyValue(property), 10);
 
     //отрисовка анимации св-ва
     function render(timePassed) {
       elem.style[property] = startValue + ((timePassed / duration) * (parseFloat(changeValue, 10))) + suffix;
     }
-
 
     let promise = new Promise(function (resolve, reject) {
       let start = performance.now();
@@ -351,9 +339,11 @@ let Chess = {
   preparationForAnimation: function (event) {
     let firstProperty, secondProperty, firsrValue, secondValue, elemHorse = this.horse.domElement;
 
+    // определяем направление первоначального движения(сначало фигура коня проходит 2 клетки потом 1)
     if (Math.abs(event.target.offsetLeft - elemHorse.offsetLeft) > Math.abs(event.target.offsetTop - elemHorse.offsetTop)) {
       firstProperty = 'left';
       secondProperty = 'top';
+      // определяем величину на которую необходимо переместить фигуру с учетом знака
       firsrValue = (event.target.offsetLeft - elemHorse.offsetLeft) + 'px';
       secondValue = (event.target.offsetTop - elemHorse.offsetTop) + 'px';
     }
@@ -364,12 +354,11 @@ let Chess = {
       secondValue = (event.target.offsetLeft - elemHorse.offsetLeft) + 'px';
     }
 
-    this.promiseAnimate(elemHorse, firstProperty, firsrValue, 1000)
-      .then(() => this.promiseAnimate(elemHorse, secondProperty, secondValue, 1000))
+    // анимация по расчитаным значениям
+    this.promiseAnimate(elemHorse, firstProperty, firsrValue, 600)
+      .then(() => this.promiseAnimate(elemHorse, secondProperty, secondValue, 300))
       .then(() => this.highlightVariant())
   },
-
-
 }
 
 
