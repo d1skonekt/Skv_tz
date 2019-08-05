@@ -1,45 +1,40 @@
 html {
-    height: 100%;
+  height: 100%;
 }
-body{
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* position: fixed; */        
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* position: fixed; */
 }
-.wrapper_field{
-    display: flex;
-    flex-wrap: wrap;
-    position: relative;
+.wrapper-field {
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
 }
-.chess_cell {
-    width: 12.5%;
-    box-sizing: border-box;
+.chess-cell {
+  width: 12.5%;
+  box-sizing: border-box;
 }
-.yellow_bg{
-    background-color: #ffd063;
+.yellow-bg {
+  background-color: #ffd063;
 }
-.brown_bg {
-    background-color: #c8623c;
+.brown-bg {
+  background-color: #c8623c;
 }
 .horse {
-    background: url(../img/horse_logo.png) no-repeat center;
-    background-size: cover;
-    position: absolute;
-    cursor: pointer;
-    box-sizing: border-box;
+  background: url(../img/horse_logo.png) no-repeat center;
+  background-size: cover;
+  position: absolute;
+  cursor: pointer;
+  box-sizing: border-box;
 }
-.variant_for_jump{
-    background-color: #A9EFFF !important;
-    cursor: pointer;
-    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
-}
-.fullscreen_btn {
-    position: absolute;
-    top: 10px;
-    left: 10px;
+.variant-for-jump {
+  background-color: #a9efff !important;
+  cursor: pointer;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
 }

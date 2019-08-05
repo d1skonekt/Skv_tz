@@ -21,7 +21,7 @@ let Chess = {
     this.board = {};
     this.board.cellsCount = 64;
     this.board.domElement = document.createElement('div');
-    this.board.domElement.classList.add('wrapper_field');
+    this.board.domElement.classList.add('wrapper-field');
 
     document.body.insertBefore(this.board.domElement, document.body.firstChild);
     this.setBoardSize();
@@ -55,7 +55,7 @@ let Chess = {
       }
       // вставка в поле каждой отдельной ячейки и присвоение ячейки класса
       this.board.domElement.appendChild(this.board.cells[i].domElement);
-      this.board.cells[i].domElement.classList.add('chess_cell');
+      this.board.cells[i].domElement.classList.add('chess-cell');
 
       if (x > 8) {
         x = 1;
@@ -67,9 +67,9 @@ let Chess = {
       x++;
       //раскраска  шахматной доски
       if (((i % 2 == 0) && (y % 2 == 0)) || ((i % 2 != 0) && (y % 2 != 0))) {
-        this.board.cells[i].domElement.classList.add('yellow_bg');
+        this.board.cells[i].domElement.classList.add('yellow-bg');
       } else {
-        this.board.cells[i].domElement.classList.add('brown_bg');
+        this.board.cells[i].domElement.classList.add('brown-bg');
       }
     }
   },
@@ -207,13 +207,6 @@ let Chess = {
 
   },
 
-  // метод отмены подсветки
-  stopHighlightVariant: function () {
-    this.board.cells.forEach(element => {
-      element.domElement.classList.remove('variant_for_jump');
-    })
-  },
-
   // метод подсветки
   highlightVariant: function () {
     let activeX = this.horse.boardPosX;
@@ -230,15 +223,22 @@ let Chess = {
         ((element.boardPosX == activeX - 2) && (element.boardPosY == activeY + 1)) ||
         ((element.boardPosX == activeX - 2) && (element.boardPosY == activeY - 1))
       ) {
-        element.domElement.classList.add('variant_for_jump');
+        element.domElement.classList.add('variant-for-jump');
       }
     });
+  },
+
+  // метод отмены подсветки
+  stopHighlightVariant: function () {
+    this.board.cells.forEach(element => {
+      element.domElement.classList.remove('variant-for-jump');
+    })
   },
 
 
   //перемещение коня по клику на новую позицию с заменой данных
   clickOnVariantJump: function (element, event) {
-    if (element.domElement.classList.contains('variant_for_jump')) {
+    if (element.domElement.classList.contains('variant-for-jump')) {
 
       this.horse.boardPosX = element.boardPosX;
       this.horse.boardPosY = element.boardPosY;
