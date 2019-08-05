@@ -157,9 +157,7 @@ let Chess = {
       if (event.target.classList.contains('horse')) {
         this.horse.isDrag = true;
         //удаляем подсветку если нажали на коня и готовы передвинуть его
-        this.board.cells.forEach(element => {
-          element.domElement.classList.remove('variant_for_jump');
-        });
+        this.stopHighlightVariant();
       }
     })
 
@@ -204,21 +202,26 @@ let Chess = {
     })
   },
 
-
+  // перемещение фигуры  коня на позицию с учетом поправки (если надо)
   moveChessFigure: function (newX, newY) {
-    // перемещение фигуры  коня на позицию с учетом поправки (если надо)
     this.horse.domElement.style.left = newX + 'px';
     this.horse.domElement.style.top = newY + 'px';
 
   },
 
+  // метод отмены подсветки
+  stopHighlightVariant: function () {
+    this.board.cells.forEach(element => {
+      element.domElement.classList.remove('variant_for_jump');
+    })
+  },
 
+  // метод подсветки
   highlightVariant: function () {
     let activeX = this.horse.boardPosX;
     let activeY = this.horse.boardPosY;
     // перебераем все елементы массива с ячейками и удаляем после клика подсвеченые элементы относительно старой позиции
     this.board.cells.forEach(element => {
-      element.domElement.classList.remove('variant_for_jump');
       //подсветка возможных новых ходов коня
       if (((element.boardPosX == activeX + 1) && (element.boardPosY == activeY + 2)) ||
         ((element.boardPosX == activeX + 1) && (element.boardPosY == activeY - 2)) ||
@@ -244,9 +247,15 @@ let Chess = {
       // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
       this.currentCell = element.id;
 
-      this.animateChessFigure(event);
 
-      this.highlightVariant();
+      this.stopHighlightVariant();
+      this.preparationForAnimation(event);
+
+      // this.moveChessFigure(element.domElement.getBoundingClientRect().x - this.horse.correctionX, element.domElement.getBoundingClientRect().y - this.horse.correctionY);
+
+
+
+      // this.highlightVariant();
     }
   },
 
@@ -302,61 +311,65 @@ let Chess = {
   },
 
 
-  // кнопка создания пешки 
-  createPawnBtn: function () {
+  promiseAnimate: function (elem, property, changeValue, duration) {
+    let startValue, suffix;
+    //определяем суфикс (расчеты работают только для px и Nubmer)
+    suffix = changeValue.replace(/[0-9+-.,]/g, '')
 
+    //получаем исходное состояния св-ва которое будем анимировать
+    startValue = parseFloat(window.getComputedStyle(elem).getPropertyValue(property), 10);
+
+    //отрисовка анимации св-ва
+    function render(timePassed) {
+      elem.style[property] = startValue + ((timePassed / duration) * (parseFloat(changeValue, 10))) + suffix;
+    }
+
+
+    let promise = new Promise(function (resolve, reject) {
+      let start = performance.now();
+
+      requestAnimationFrame(function anime(time) {
+        // определить, сколько прошло времени с начала анимации
+        let timePassed = time - start;
+
+        // возможно небольшое превышение времени, в этом случае зафиксировать конец
+        if (timePassed > duration) { timePassed = duration; resolve(console.log('promise done')); }
+
+        // нарисовать состояние анимации в момент timePassed
+        render(timePassed);
+
+        // если время анимации не закончилось - запланировать ещё кадр
+        if (timePassed < duration) {
+          requestAnimationFrame(anime)
+        }
+      })
+    })
+    return promise
+  },
+
+  // подготовка к анимации (вычисления направления и величины перемещения)
+  preparationForAnimation: function (event) {
+    let firstProperty, secondProperty, firsrValue, secondValue, elemHorse = this.horse.domElement;
+
+    if (Math.abs(event.target.offsetLeft - elemHorse.offsetLeft) > Math.abs(event.target.offsetTop - elemHorse.offsetTop)) {
+      firstProperty = 'left';
+      secondProperty = 'top';
+      firsrValue = (event.target.offsetLeft - elemHorse.offsetLeft) + 'px';
+      secondValue = (event.target.offsetTop - elemHorse.offsetTop) + 'px';
+    }
+    else {
+      firstProperty = 'top';
+      secondProperty = 'left';
+      firsrValue = (event.target.offsetTop - elemHorse.offsetTop) + 'px';
+      secondValue = (event.target.offsetLeft - elemHorse.offsetLeft) + 'px';
+    }
+
+    this.promiseAnimate(elemHorse, firstProperty, firsrValue, 1000)
+      .then(() => this.promiseAnimate(elemHorse, secondProperty, secondValue, 1000))
+      .then(() => this.highlightVariant())
   },
 
 
-  //Анимированое перемещение коня буквой Г
-  animateChessFigure: function (event) {
-    let newThis = this;
-    let speed = 5;
-    let currentValueOnTheLeft, currentValueOnTheTop;
-    // значения left , top текущего состояния коня (для того чтобы анимация не начиналась позиции body 0.0)
-    currentValueOnTheLeft = this.horse.domElement.offsetLeft;
-    currentValueOnTheTop = this.horse.domElement.offsetTop;
-
-    //условная скорость анимации (чем меньше - тем быстрее)
-
-    // определение коэффициента сдвига и величину пройденой дистанции
-    horizontalMoveRate = (event.target.offsetLeft - newThis.horse.domElement.offsetLeft) / speed;
-    verticalMoveRate = (event.target.offsetTop - newThis.horse.domElement.offsetTop) / speed;
-    let distanceHorizontMove = 0, distanceVerticalMove = 0;
-    let axis;
-    //определение оси по которой двигаться сначала 
-    if (Math.abs(event.target.offsetLeft - this.horse.domElement.offsetLeft) > Math.abs(event.target.offsetTop - this.horse.domElement.offsetTop)) axis = 'horizontal';
-    else axis = 'vertical'
-
-    function render() {
-      // т.к больший путь надо пройти по горизонтали сначала изменяем св-во left
-      if (axis == 'horizontal') {
-        if (Math.abs(distanceHorizontMove) < Math.abs((horizontalMoveRate * speed))) {
-          distanceHorizontMove += horizontalMoveRate;
-          newThis.horse.domElement.style.left = currentValueOnTheLeft + distanceHorizontMove + 'px';
-          requestAnimationFrame(render)
-        } else if (Math.abs(distanceVerticalMove) < Math.abs((verticalMoveRate * speed))) {
-          distanceVerticalMove += verticalMoveRate;
-          newThis.horse.domElement.style.top = currentValueOnTheTop + distanceVerticalMove + 'px'
-          requestAnimationFrame(render)
-        }
-        // в противном случаее больший путь надо пройти по вертикали и в приоритете изменение св-ва top
-      } else {
-        if (Math.abs(distanceVerticalMove) < Math.abs((verticalMoveRate * speed))) {
-          distanceVerticalMove += verticalMoveRate;
-          newThis.horse.domElement.style.top = currentValueOnTheTop + distanceVerticalMove + 'px'
-          requestAnimationFrame(render)
-        } else if (Math.abs(distanceHorizontMove) < Math.abs((horizontalMoveRate * speed))) {
-          distanceHorizontMove += horizontalMoveRate;
-          newThis.horse.domElement.style.left = currentValueOnTheLeft + distanceHorizontMove + 'px';
-          requestAnimationFrame(render)
-        }
-      }
-    }
-
-    render();
-
-  }
 }
 
 
