@@ -105,7 +105,7 @@ let Chess = {
     this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
 
     // информация для центрированния курсора при захвате
-    this.horse.centeredPosition = this.horse.domElement.offsetWidth / 2;
+    this.horse.halfWidthAndHight = this.horse.domElement.offsetWidth / 2;
 
     // поправки на установку коня в нужную ячейку учитывающие ширину и высоту доски и документа
     this.horse.centeredPositionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2;
@@ -117,7 +117,7 @@ let Chess = {
   },
 
 
-  //перерисовка поля и коня при изменении размеров
+  //перерисовка поля и коня при изменении размеров + инвенты
   setListeners: function () {
     document.body.onresize = () => {
       this.setBoardSize();
@@ -147,6 +147,10 @@ let Chess = {
 
     //Клик мышки по коню (grad & drop)
     this.horse.domElement.addEventListener(dragStart, (event) => {
+      //передаем позицию мышки во время старта перетягивания для корректного дропа
+      this.horse.startDragMousePositionX = event.clientX;
+      this.horse.startDragMousePositionY = event.clientY;
+
       document.body.style.overscrollBehavior = 'none';
       if (event.target.classList.contains('horse')) {
         this.horse.isDrag = true;
@@ -166,12 +170,12 @@ let Chess = {
           var moveOnX = event.changedTouches[0].pageX - this.horse.centeredPositionX;
           var moveOnY = event.changedTouches[0].pageY - this.horse.centeredPositionY;
         }
-        this.moveChessFigure(moveOnX - this.horse.centeredPosition, moveOnY - this.horse.centeredPosition);
+        this.moveChessFigure(moveOnX - this.horse.halfWidthAndHight, moveOnY - this.horse.halfWidthAndHight);
       }
     })
 
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
-    this.horse.domElement.addEventListener(dropEnd, () => {
+    this.horse.domElement.addEventListener(dropEnd, (event) => {
       document.body.style.overscrollBehavior = 'auto';
       if (this.horse.isDrag) {
         // переопределение позиции коня для корректной подсветки и растановке на поле
@@ -179,23 +183,35 @@ let Chess = {
         this.board.cells.forEach(cell => {
           let cellPosition = cell.domElement.getBoundingClientRect();
 
-          if ((cellPosition.top - horsePosition.top) < this.horse.centeredPosition &&
-            (cellPosition.left - horsePosition.left) < this.horse.centeredPosition &&
-            (cellPosition.right - horsePosition.right) < this.horse.centeredPosition &&
-            (cellPosition.bottom - horsePosition.bottom) < this.horse.centeredPosition) {
+          if ((cellPosition.top - horsePosition.top) < this.horse.halfWidthAndHight &&
+            (cellPosition.left - horsePosition.left) < this.horse.halfWidthAndHight &&
+            (cellPosition.right - horsePosition.right) < this.horse.halfWidthAndHight &&
+            (cellPosition.bottom - horsePosition.bottom) < this.horse.halfWidthAndHight) {
             // определяем над какой ячейкой конь
             this.currentCell.id = cell.id;
             this.currentCell.position = cellPosition;
           }
         })
-        //Передвигаем точно коня в центр дропнутой ячейки и обновляем  информацию коня
-        this.moveChessFigure(this.currentCell.position.x - this.horse.centeredPositionX, this.currentCell.position.y - this.horse.centeredPositionY);
-        this.horse.boardPosX = this.board.cells[this.currentCell.id].boardPosX;
-        this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
+
+        //проверить состоялось ли перетаскивая коня (dragMove),если да выполнить анимацию
+        if (this.horse.startDragMousePositionX !== event.clientX && this.horse.startDragMousePositionY !== event.clientY) {
+          //определяем растояние которое надо проанимировать (от места дропа мышки и до ячейки в которую конь будет становиться с учетом центрирования) + добавляем единицу измерения()
+          let dragAnimateX = (this.currentCell.position.x - event.clientX + this.horse.halfWidthAndHight) + 'px';
+          let dragAnimateY = (this.currentCell.position.y - event.clientY + this.horse.halfWidthAndHight) + 'px';
+
+          this.promiseAnimate(this.horse.domElement, 'left', dragAnimateX, 200);
+          this.promiseAnimate(this.horse.domElement, 'top', dragAnimateY, 200)
+            .then(() => { this.highlightVariant(); });
+
+          // обновляем данные коня если состоялся drag&drop
+          this.horse.boardPosX = this.board.cells[this.currentCell.id].boardPosX;
+          this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
+        }
         // окончание дропа
         this.horse.isDrag = false;
-        //повторно подсвечиваем ячейки для возможного передвижения после Дропа
+        // повторная подсветка 
         this.highlightVariant();
+
       }
     })
   },
@@ -204,7 +220,6 @@ let Chess = {
   moveChessFigure: function (newX, newY) {
     this.horse.domElement.style.left = newX + 'px';
     this.horse.domElement.style.top = newY + 'px';
-
   },
 
   // метод подсветки
@@ -337,26 +352,26 @@ let Chess = {
 
   // подготовка к анимации (вычисления направления и величины перемещения)
   preparationForAnimation: function (event) {
-    let firstProperty, secondProperty, firsrValue, secondValue, elemHorse = this.horse.domElement;
+    let firstDirection, secondtDirection, firstLenght, secondLenght, elemHorse = this.horse.domElement;
 
     // определяем направление первоначального движения(сначало фигура коня проходит 2 клетки потом 1)
     if (Math.abs(event.target.offsetLeft - elemHorse.offsetLeft) > Math.abs(event.target.offsetTop - elemHorse.offsetTop)) {
-      firstProperty = 'left';
-      secondProperty = 'top';
+      firstDirection = 'left';
+      secondtDirection = 'top';
       // определяем величину на которую необходимо переместить фигуру с учетом знака
-      firsrValue = (event.target.offsetLeft - elemHorse.offsetLeft) + 'px';
-      secondValue = (event.target.offsetTop - elemHorse.offsetTop) + 'px';
+      firstLenght = (event.target.offsetLeft - elemHorse.offsetLeft) + 'px';
+      secondLenght = (event.target.offsetTop - elemHorse.offsetTop) + 'px';
     }
     else {
-      firstProperty = 'top';
-      secondProperty = 'left';
-      firsrValue = (event.target.offsetTop - elemHorse.offsetTop) + 'px';
-      secondValue = (event.target.offsetLeft - elemHorse.offsetLeft) + 'px';
+      firstDirection = 'top';
+      secondtDirection = 'left';
+      firstLenght = (event.target.offsetTop - elemHorse.offsetTop) + 'px';
+      secondLenght = (event.target.offsetLeft - elemHorse.offsetLeft) + 'px';
     }
 
     // анимация по расчитаным значениям
-    this.promiseAnimate(elemHorse, firstProperty, firsrValue, 600)
-      .then(() => this.promiseAnimate(elemHorse, secondProperty, secondValue, 300))
+    this.promiseAnimate(elemHorse, firstDirection, firstLenght, 600)
+      .then(() => this.promiseAnimate(elemHorse, secondtDirection, secondLenght, 300))
       .then(() => this.highlightVariant())
   },
 }
