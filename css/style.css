@@ -9,12 +9,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 /* стили шахматной достки */
 .wrapper-field {
   display: flex;
   flex-wrap: wrap;
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 .chess-cell {
   width: 12.5%;
@@ -28,6 +31,8 @@ body {
 }
 /* стили коня + подсветка возможных его ходов */
 .horse {
+  width: 12.4%;
+  height: 12.4%;
   background: url(../img/horse_logo.png) no-repeat center;
   background-size: cover;
   position: absolute;
