@@ -153,7 +153,7 @@ let Chess = {
     }
 
     //Клик мышки по коню (grad & drop)
-    this.board.domElement.addEventListener(dragStart, (event) => {
+    this.horse.domElement.addEventListener(dragStart, (event) => {
       //удаляем подсветку если нажали на коня и готовы передвинуть его
       this.stopHighlightVariant();
       //передаем позицию мышки во время старта перетягивания для корректного дропа бля мобильной версии и пк
@@ -188,7 +188,7 @@ let Chess = {
     })
 
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
-    this.board.domElement.addEventListener(dropEnd, (event) => {
+    this.horse.domElement.addEventListener(dropEnd, (event) => {
       if (this.horse.isDrag) {
         // переопределение позиции коня для корректной подсветки и растановке на поле
         let horsePosition = this.horse.domElement.getBoundingClientRect();
@@ -288,14 +288,13 @@ let Chess = {
   //перемещение коня по клику на новую позицию с заменой данных
   clickOnVariantJump: function (element, event) {
     if (element.domElement.classList.contains('variant-for-jump')) {
-
       this.horse.boardPosX = element.boardPosX;
       this.horse.boardPosY = element.boardPosY;
       // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
       this.currentCell.id = element.id;
 
       //останавливаем подсветку во время анимации 
-      this.stopHighlightVariant();
+      // this.stopHighlightVariant();
       // просчитываем и передаем информации для анимации (в данном случае коня)
       this.preparationForAnimation(event);
     }
@@ -362,7 +361,7 @@ let Chess = {
 
     //отрисовка анимации св-ва
     function render(timePassed) {
-      elem.style[property] = (startValue + ((timePassed / duration) * (parseFloat(changeValue, 10)))) * newThis.board.coefficientResizing + suffix;
+      elem.style[property] = (startValue + ((timePassed / duration) * (parseFloat(changeValue, 10)))) + suffix;
     }
 
     let promise = new Promise(function (resolve, reject) {
