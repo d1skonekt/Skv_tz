@@ -162,7 +162,6 @@ let Chess = {
         this.horse.startDragMousePositionY = event.clientY;
       }
 
-
       document.body.style.overscrollBehavior = 'none';
       if (event.target.classList.contains('horse')) {
         this.horse.isDrag = true;
@@ -208,15 +207,17 @@ let Chess = {
         //проверить состоялось ли перетаскивая коня (dragMove),если да выполнить анимацию
         let dragAnimateX, dragAnimateY;
         // вычисляем условия окончания драга для мобильного устройства (если перетаскивание елемента состоялось)
-        if (this.mobile && this.horse.startDragMousePositionX !== event.changedTouches[0].pageX && this.horse.startDragMousePositionY !== event.changedTouches[0].pageY) {
-          dragAnimateX = (this.currentCell.position.x - event.changedTouches[0].pageX + this.horse.halfWidthAndHight) + 'px';
-          dragAnimateY = (this.currentCell.position.y - event.changedTouches[0].pageY + this.horse.halfWidthAndHight) + 'px';
-          //  анимируем окончания дропа
-          this.promiseAnimate(this.horse.domElement, 'left', dragAnimateX, 200);
-          this.promiseAnimate(this.horse.domElement, 'top', dragAnimateY, 200)
-            .then(() => { this.highlightVariant(); });
+        if (this.mobile) {
+          if (this.horse.startDragMousePositionX !== event.changedTouches[0].pageX && this.horse.startDragMousePositionY !== event.changedTouches[0].pageY) {
+            dragAnimateX = (this.currentCell.position.x - event.changedTouches[0].pageX + this.horse.halfWidthAndHight) + 'px';
+            dragAnimateY = (this.currentCell.position.y - event.changedTouches[0].pageY + this.horse.halfWidthAndHight) + 'px';
+            //  анимируем окончания дропа
+            this.promiseAnimate(this.horse.domElement, 'left', dragAnimateX, 200);
+            this.promiseAnimate(this.horse.domElement, 'top', dragAnimateY, 200)
+              .then(() => { this.highlightVariant(); });
+          }
         }
-        //определяем состоялолся ли drag&drop или просто кликнули по коню
+        //определяем состоялолся ли drag&drop или просто кликнули по коню на пк
         else if (this.horse.startDragMousePositionX !== event.clientX && this.horse.startDragMousePositionY !== event.clientY) {
           //определяем растояние которое надо проанимировать (от места дропа мышки и до ячейки в которую конь будет становиться с учетом центрирования) + добавляем единицу измерения() для пк
           dragAnimateX = (this.currentCell.position.x - event.clientX + this.horse.halfWidthAndHight) + 'px';
