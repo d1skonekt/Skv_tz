@@ -109,15 +109,15 @@ let Chess = {
     this.horse.boardPosX = this.board.cells[this.currentCell.id].boardPosX;
     this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
 
-    // информация для центрированния курсора при захвате
-    this.horse.halfWidthAndHight = this.horse.domElement.offsetWidth / 2;
+    // информация для центрированния курсора при захвате 
+    this.board.halfWidthAndHightCell = this.horse.domElement.offsetWidth / 2;
 
     // поправки на установку коня в нужную ячейку учитывающие ширину и высоту доски и документа
-    this.horse.centeredPositionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2;
-    this.horse.centeredPositionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2;
+    this.board.centeredPositionX = (document.body.offsetWidth - this.board.domElement.offsetWidth) / 2;
+    this.board.centeredPositionY = (document.body.offsetHeight - this.board.domElement.offsetHeight) / 2;
 
     //перемещение коня в установленную рандомом ячейку
-    this.moveChessFigure(this.horse.posinionX - this.horse.centeredPositionX, this.horse.posinionY - this.horse.centeredPositionY);
+    this.moveChessFigure(this.horse.posinionX - this.board.centeredPositionX, this.horse.posinionY - this.board.centeredPositionY, this.horse);
   },
 
 
@@ -127,7 +127,6 @@ let Chess = {
       this.setBoardSize();
       this.setHorseParams();
       this.setPawmFieldParams();
-      console.log(document.querySelector('.wrapper-field').offsetWidth);
     }
 
     // добавление события клика на каждый элемент ячейки (ход коня + подсветка следующего варианта)
@@ -148,69 +147,68 @@ let Chess = {
       var dragStart = 'mousedown';
       var dragMove = 'mousemove';
       var dropEnd = 'mouseup';
-      var mouseDrag = true;
     }
 
     // начало drag&drop для коня
     this.createDragStartListener(this.horse, dragStart);
     //перемещение самого коня
-    this.createDragMoveListener(this.horse, dragMove)
-
+    this.createDragMoveListener(this.board, this.horse, dragMove);
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
+    this.createDropEndListener(this.horse, this.horse, dropEnd);
 
-    this.horse.domElement.addEventListener(dropEnd, (event) => {
-      if (this.board.isDrag) {
-        // переопределение позиции коня для корректной подсветки и растановке на поле
-        let horsePosition = this.horse.domElement.getBoundingClientRect();
-        this.board.cells.forEach(cell => {
-          let cellPosition = cell.domElement.getBoundingClientRect();
+    // this.horse.domElement.addEventListener(dropEnd, (event) => {
+    //   if (this.board.isDrag) {
+    //     // переопределение позиции коня для корректной подсветки и растановке на поле
+    //     let horsePosition = this.horse.domElement.getBoundingClientRect();
+    //     this.board.cells.forEach(cell => {
+    //       let cellPosition = cell.domElement.getBoundingClientRect();
 
-          if ((cellPosition.top - horsePosition.top) < this.horse.halfWidthAndHight &&
-            (cellPosition.left - horsePosition.left) < this.horse.halfWidthAndHight &&
-            (cellPosition.right - horsePosition.right) < this.horse.halfWidthAndHight &&
-            (cellPosition.bottom - horsePosition.bottom) < this.horse.halfWidthAndHight) {
-            // определяем над какой ячейкой конь
-            this.currentCell.id = cell.id;
-            this.currentCell.position = cellPosition;
-          }
-        })
+    //       if ((cellPosition.top - horsePosition.top) < this.horse.halfWidthAndHightCell &&
+    //         (cellPosition.left - horsePosition.left) < this.horse.halfWidthAndHightCell &&
+    //         (cellPosition.right - horsePosition.right) < this.horse.halfWidthAndHightCell &&
+    //         (cellPosition.bottom - horsePosition.bottom) < this.horse.halfWidthAndHightCell) {
+    //         // определяем над какой ячейкой конь
+    //         this.currentCell.id = cell.id;
+    //         this.currentCell.position = cellPosition;
+    //       }
+    //     })
 
-        //проверить состоялось ли перетаскивая коня (dragMove),если да выполнить анимацию
-        let dragAnimateX, dragAnimateY;
-        // вычисляем условия окончания драга для мобильного устройства (если перетаскивание елемента состоялось)
-        if (this.mobile) {
-          document.body.style.overscrollBehavior = 'auto';
-          if (this.horse.startDragMousePositionX !== event.changedTouches[0].pageX && this.horse.startDragMousePositionY !== event.changedTouches[0].pageY) {
-            dragAnimateX = (this.currentCell.position.x - event.changedTouches[0].pageX + this.horse.halfWidthAndHight) + 'px';
-            dragAnimateY = (this.currentCell.position.y - event.changedTouches[0].pageY + this.horse.halfWidthAndHight) + 'px';
-            //  анимируем окончания дропа
-            this.promiseAnimate(this.horse.domElement, 'left', dragAnimateX, 150);
-            this.promiseAnimate(this.horse.domElement, 'top', dragAnimateY, 150)
-              .then(() => { this.highlightVariant(); });
-          }
-        }
-        //определяем состоялолся ли drag&drop или просто кликнули по коню на пк
-        else if (this.horse.startDragMousePositionX !== event.clientX && this.horse.startDragMousePositionY !== event.clientY) {
-          //определяем растояние которое надо проанимировать (от места дропа мышки и до ячейки в которую конь будет становиться с учетом центрирования) + добавляем единицу измерения() для пк
-          dragAnimateX = (this.currentCell.position.x - event.clientX + this.horse.halfWidthAndHight) + 'px';
-          dragAnimateY = (this.currentCell.position.y - event.clientY + this.horse.halfWidthAndHight) + 'px';
-          //  анимируем окончания дропа
-          this.promiseAnimate(this.horse.domElement, 'left', dragAnimateX, 150);
-          this.promiseAnimate(this.horse.domElement, 'top', dragAnimateY, 150)
-            .then(() => { this.highlightVariant(); });
-        }
+    //     //проверить состоялось ли перетаскивая коня (dragMove),если да выполнить анимацию
+    //     let dragAnimateX, dragAnimateY;
+    //     // вычисляем условия окончания драга для мобильного устройства (если перетаскивание елемента состоялось)
+    //     if (this.mobile) {
+    //       document.body.style.overscrollBehavior = 'auto';
+    //       if (this.horse.startDragMousePositionX !== event.changedTouches[0].pageX && this.horse.startDragMousePositionY !== event.changedTouches[0].pageY) {
+    //         dragAnimateX = (this.currentCell.position.x - event.changedTouches[0].pageX + this.horse.halfWidthAndHightCell) + 'px';
+    //         dragAnimateY = (this.currentCell.position.y - event.changedTouches[0].pageY + this.horse.halfWidthAndHightCell) + 'px';
+    //         //  анимируем окончания дропа
+    //         this.promiseAnimate(this.horse.domElement, 'left', dragAnimateX, 150);
+    //         this.promiseAnimate(this.horse.domElement, 'top', dragAnimateY, 150)
+    //           .then(() => { this.highlightVariant(); });
+    //       }
+    //     }
+    //     //определяем состоялолся ли drag&drop или просто кликнули по коню на пк
+    //     else if (this.horse.startDragMousePositionX !== event.clientX && this.horse.startDragMousePositionY !== event.clientY) {
+    //       //определяем растояние которое надо проанимировать (от места дропа мышки и до ячейки в которую конь будет становиться с учетом центрирования) + добавляем единицу измерения() для пк
+    //       dragAnimateX = (this.currentCell.position.x - event.clientX + this.horse.halfWidthAndHightCell) + 'px';
+    //       dragAnimateY = (this.currentCell.position.y - event.clientY + this.horse.halfWidthAndHightCell) + 'px';
+    //       //  анимируем окончания дропа
+    //       this.promiseAnimate(this.horse.domElement, 'left', dragAnimateX, 150);
+    //       this.promiseAnimate(this.horse.domElement, 'top', dragAnimateY, 150)
+    //         .then(() => { this.highlightVariant(); });
+    //     }
 
-        // обновляем данные коня если состоялся drag&drop
-        this.horse.boardPosX = this.board.cells[this.currentCell.id].boardPosX;
-        this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
+    //     // обновляем данные коня если состоялся drag&drop
+    //     this.horse.boardPosX = this.board.cells[this.currentCell.id].boardPosX;
+    //     this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
 
-        // окончание дропа
-        this.board.isDrag = false;
-        // повторная подсветка 
-        this.highlightVariant();
+    //     // окончание дропа
+    //     this.board.isDrag = false;
+    //     // повторная подсветка 
+    //     this.highlightVariant();
 
-      }
-    })
+    //   }
+    // })
 
     // ивенты связаны с пешками
     // this.addNewFigure('blackPawn');
@@ -218,14 +216,15 @@ let Chess = {
 
 
   // перемещение фигуры  коня на позицию с учетом поправки (если надо)
-  moveChessFigure(newX, newY) {
-    this.horse.domElement.style.left = newX + 'px';
-    this.horse.domElement.style.top = newY + 'px';
+  moveChessFigure(newX, newY, figure) {
+    figure.domElement.style.left = newX + 'px';
+    figure.domElement.style.top = newY + 'px';
   },
 
 
   // метод подсветки
   highlightVariant() {
+    //повторный вызов остановки подсветки для устранения мультиподсветки при быстрых кликах в drag&grop
     this.stopHighlightVariant();
     let activeX = this.horse.boardPosX;
     let activeY = this.horse.boardPosY;
@@ -433,18 +432,18 @@ let Chess = {
 
 
   //создание ивента начала drag
-  createDragStartListener(elem, dragStart) {
-    elem.domElement.addEventListener(dragStart, (event) => {
+  createDragStartListener(figure, dragStart) {
+    figure.domElement.addEventListener(dragStart, (event) => {
       //удаляем подсветку если нажали на коня и готовы передвинуть его
       this.stopHighlightVariant();
 
       if (this.mobile) {
-        elem.startDragMousePositionX = event.changedTouches[0].pageX;
-        elem.startDragMousePositionY = event.changedTouches[0].pageY;
+        figure.startDragMousePositionX = event.changedTouches[0].pageX;
+        figure.startDragMousePositionY = event.changedTouches[0].pageY;
         document.body.style.overscrollBehavior = 'none';
       } else {
-        elem.startDragMousePositionX = event.clientX;
-        elem.startDragMousePositionY = event.clientY;
+        figure.startDragMousePositionX = event.clientX;
+        figure.startDragMousePositionY = event.clientY;
       }
 
       this.board.isDrag = true;
@@ -453,24 +452,54 @@ let Chess = {
 
 
   //создание ивента перемешения drag
-  createDragMoveListener(elem, dragMove) {
-    elem.domElement.addEventListener(dragMove, (event) => {
+  createDragMoveListener(listnerFigure, moveFigure, dragMove) {
+    listnerFigure.domElement.addEventListener(dragMove, (event) => {
       if (this.board.isDrag) {
         // вызов ф-и передвижения коня следом за курсором мыши ((курсор всегда по центру коня)) с учетом проверки ПК или нет
         if (this.mobile) {
-          //определение координат при использовании тача
-          var moveOnX = event.changedTouches[0].pageX - this.horse.centeredPositionX;
-          var moveOnY = event.changedTouches[0].pageY - this.horse.centeredPositionY;
+          //определение координат при использовании тача с учетом отступов от body до board
+          var moveOnX = event.changedTouches[0].pageX - this.board.centeredPositionX;
+          var moveOnY = event.changedTouches[0].pageY - this.board.centeredPositionY;
         } else {
           //определение координат при использовании мышки с учетом отступов от body до board
-          var moveOnX = event.pageX - this.horse.centeredPositionX;
-          var moveOnY = event.pageY - this.horse.centeredPositionY;
+          var moveOnX = event.pageX - this.board.centeredPositionX;
+          var moveOnY = event.pageY - this.board.centeredPositionY;
         }
-        this.moveChessFigure(moveOnX - this.horse.halfWidthAndHight, moveOnY - this.horse.halfWidthAndHight);
+        this.moveChessFigure(moveOnX - listnerFigure.halfWidthAndHightCell, moveOnY - listnerFigure.halfWidthAndHightCell, moveFigure);
       }
     })
-  }
+  },
 
+
+  //создание ивента окончания drop
+  createDropEndListener(listnerFigure, moveFigure, dropEnd) {
+    listnerFigure.domElement.addEventListener(dropEnd, (event) => {
+
+      // условие дропа за пределами доски  и возвращение фигуры в исходную позицию с которой начался drag&drop
+      if ((event.clientX < this.board.centeredPositionX) || (event.clientX > this.board.centeredPositionX + this.board.defaultSize)
+        || (event.clientY < this.board.centeredPositionY) || (event.clientY > this.board.centeredPositionY + this.board.defaultSize)) {
+
+        // расчитываем величину анимации с учетом , что курсор мышки находится ровно по центру фигуры , а позицианируется все относительно верхнего левого угла
+        let outFromBordX = (moveFigure.posinionX - event.clientX + this.board.halfWidthAndHightCell) + 'px';
+        let outFromBordY = (moveFigure.posinionY - event.clientY + this.board.halfWidthAndHightCell) + 'px';
+
+        this.promiseAnimate(moveFigure.domElement, 'left', outFromBordX, 200);
+        this.promiseAnimate(moveFigure.domElement, 'top', outFromBordY, 200)
+          .then(() => this.highlightVariant())
+
+      }
+
+
+
+
+
+      this.board.isDrag = false;
+    })
+
+
+    // повторная подсветка 
+    this.highlightVariant();
+  }
 
 }
 
