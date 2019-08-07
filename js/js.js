@@ -1,5 +1,5 @@
 let Chess = {
-  init: function () {
+  init() {
     this.getMobileInfo();
     this.createBoard();
     this.createCells();
@@ -11,7 +11,7 @@ let Chess = {
 
 
   //ф-я обработки устройсва с которого зашли на сайт
-  getMobileInfo: function () {
+  getMobileInfo() {
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
       this.mobile = true;
       this.mobileFullscreenInfo = false;
@@ -20,8 +20,9 @@ let Chess = {
 
 
   //создание доски и вызов ф-и которая определяет размеры блока;
-  createBoard: function () {
+  createBoard() {
     this.board = {};
+    this.board.isDrag = false;
     this.board.coefficientResizing = 1;
     this.board.cellsCount = 64;
     this.board.domElement = document.createElement('div');
@@ -33,7 +34,7 @@ let Chess = {
 
 
   // определение размеров игровой доски
-  setBoardSize: function () {
+  setBoardSize() {
     // условие для всегда правильного квадрата и размера доски 90% от миннимального параметра экрана( высоты или ширины)
     if (document.body.offsetWidth >= document.body.offsetHeight) {
       this.board.domElement.style.width = window.innerHeight * 0.8 + 'px'
@@ -48,15 +49,14 @@ let Chess = {
 
 
   // создание ячеек поля + добавление позиции X,Y + добавление классов для окраса;
-  createCells: function () {
+  createCells() {
     //  массив обьектов с параметрами позиции ячейки (x,y) + domElement
     this.board.cells = [];
     let x = 1, y = 8;
     for (let i = 0; i < this.board.cellsCount; i++) {
       this.board.cells[i] = {
         id: i + '',
-        domElement: document.createElement('div'),
-        isDrag: false
+        domElement: document.createElement('div')
       }
       // вставка в поле каждой отдельной ячейки и присвоение ячейки класса
       this.board.domElement.appendChild(this.board.cells[i].domElement);
@@ -81,9 +81,8 @@ let Chess = {
 
 
   //создание блока коня и вызов ф-и которая определяет его размеры;
-  createHorse: function () {
+  createHorse() {
     this.horse = {};
-    this.horse.isDrag = false;
     this.horse.figureColor = 'black';
     this.currentCell = {};
     this.horse.domElement = document.createElement('div');
@@ -98,7 +97,7 @@ let Chess = {
 
 
   // определение необходимых параметров коня
-  setHorseParams: function () {
+  setHorseParams() {
     // высоту и ширину коня определяем через css , но передаем значение в сво-во коня , чтобы определять размер пешек (пустышек)
     this.horse.defaultSizeCell = this.board.defaultSize * 0.124;
 
@@ -123,7 +122,7 @@ let Chess = {
 
 
   //перерисовка поля и коня при изменении размеров + инвенты
-  setListeners: function () {
+  setListeners() {
     document.body.onresize = () => {
       this.setBoardSize();
       this.setHorseParams();
@@ -152,44 +151,15 @@ let Chess = {
       var mouseDrag = true;
     }
 
-    //Клик мышки по коню (grad & drop)
-    this.horse.domElement.addEventListener(dragStart, (event) => {
-      //удаляем подсветку если нажали на коня и готовы передвинуть его
-      this.stopHighlightVariant();
-      //передаем позицию мышки во время старта перетягивания для корректного дропа бля мобильной версии и пк
-      if (this.mobile) {
-        this.horse.startDragMousePositionX = event.changedTouches[0].pageX;
-        this.horse.startDragMousePositionY = event.changedTouches[0].pageY;
-        document.body.style.overscrollBehavior = 'none';
-      } else {
-        this.horse.startDragMousePositionX = event.clientX;
-        this.horse.startDragMousePositionY = event.clientY;
-      }
-
-      if (event.target.classList.contains('horse')) {
-        this.horse.isDrag = true;
-      }
-    })
-
-    this.board.domElement.addEventListener(dragMove, (event) => {
-      if (this.horse.isDrag) {
-        // вызов ф-и передвижения коня следом за курсором мыши ((курсор всегда по центру коня)) с учетом проверки ПК или нет
-        if (mouseDrag) {
-          var moveOnX = event.pageX - this.horse.centeredPositionX;
-          var moveOnY = event.pageY - this.horse.centeredPositionY;
-        } else {
-          //определение координат при использовании тача
-          var moveOnX = event.changedTouches[0].pageX - this.horse.centeredPositionX;
-          var moveOnY = event.changedTouches[0].pageY - this.horse.centeredPositionY;
-        }
-        this.moveChessFigure(moveOnX - this.horse.halfWidthAndHight, moveOnY - this.horse.halfWidthAndHight);
-      }
-
-    })
+    // начало drag&drop для коня
+    this.createDragStartListener(this.horse, dragStart);
+    //перемещение самого коня
+    this.createDragMoveListener(this.horse, dragMove)
 
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
+
     this.horse.domElement.addEventListener(dropEnd, (event) => {
-      if (this.horse.isDrag) {
+      if (this.board.isDrag) {
         // переопределение позиции коня для корректной подсветки и растановке на поле
         let horsePosition = this.horse.domElement.getBoundingClientRect();
         this.board.cells.forEach(cell => {
@@ -235,7 +205,7 @@ let Chess = {
         this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
 
         // окончание дропа
-        this.horse.isDrag = false;
+        this.board.isDrag = false;
         // повторная подсветка 
         this.highlightVariant();
 
@@ -248,14 +218,14 @@ let Chess = {
 
 
   // перемещение фигуры  коня на позицию с учетом поправки (если надо)
-  moveChessFigure: function (newX, newY) {
+  moveChessFigure(newX, newY) {
     this.horse.domElement.style.left = newX + 'px';
     this.horse.domElement.style.top = newY + 'px';
   },
 
 
   // метод подсветки
-  highlightVariant: function () {
+  highlightVariant() {
     this.stopHighlightVariant();
     let activeX = this.horse.boardPosX;
     let activeY = this.horse.boardPosY;
@@ -278,7 +248,7 @@ let Chess = {
 
 
   // метод отмены подсветки
-  stopHighlightVariant: function () {
+  stopHighlightVariant() {
     this.board.cells.forEach(element => {
       element.domElement.classList.remove('variant-for-jump');
     })
@@ -286,7 +256,7 @@ let Chess = {
 
 
   //перемещение коня по клику на новую позицию с заменой данных
-  clickOnVariantJump: function (element, event) {
+  clickOnVariantJump(element, event) {
     if (element.domElement.classList.contains('variant-for-jump')) {
       this.horse.boardPosX = element.boardPosX;
       this.horse.boardPosY = element.boardPosY;
@@ -294,7 +264,7 @@ let Chess = {
       this.currentCell.id = element.id;
 
       //останавливаем подсветку во время анимации 
-      // this.stopHighlightVariant();
+      this.stopHighlightVariant();
       // просчитываем и передаем информации для анимации (в данном случае коня)
       this.preparationForAnimation(event);
     }
@@ -302,7 +272,7 @@ let Chess = {
 
 
   // обработка запуска фулскрина на телефоне
-  runMobileFullscreen: function () {
+  runMobileFullscreen() {
     // эмуляция двойного клика по экрану  которая привязана к document.body
     let downTime, upTime, clicked = 0;
 
@@ -351,7 +321,7 @@ let Chess = {
 
 
   // создание анимации с помощью промиса по данным которые расчитали
-  promiseAnimate: function (elem, property, changeValue, duration) {
+  promiseAnimate(elem, property, changeValue, duration) {
     // переопределяем this для корректной работы анимации и возможности использовать коэффициент ресайза
     let newThis = this
     //определяем суфикс (расчеты работают только для px и Nubmer)
@@ -388,7 +358,7 @@ let Chess = {
 
 
   // подготовка к анимации (вычисления направления и величины перемещения)
-  preparationForAnimation: function (event) {
+  preparationForAnimation(event) {
     let firstDirection, secondtDirection, firstLenght, secondLenght, elemHorse = this.horse.domElement;
 
     // определяем направление первоначального движения(сначало фигура коня проходит 2 клетки потом 1)
@@ -414,7 +384,7 @@ let Chess = {
 
 
   // создание  поля в котором будут находится "пешки" которые можно перетащить на поле
-  createNewChessFigureField: function () {
+  createNewChessFigureField() {
     this.createNewChessFigure = {};
     this.createNewChessFigure.blackPawn = {};
     this.createNewChessFigure.whitePawn = {};
@@ -440,7 +410,7 @@ let Chess = {
 
 
   //установка размеров для поля создания пешек и его составляющих
-  setPawmFieldParams: function () {
+  setPawmFieldParams() {
     // определения размоложения поля 
     if (document.body.offsetWidth >= document.body.offsetHeight) {
       this.createNewChessFigure.createFieldDomElem.style.flexDirection = 'column';
@@ -461,10 +431,47 @@ let Chess = {
     this.createNewChessFigure.whitePawn.creator.style.height = this.horse.defaultSizeCell + 'px';
   },
 
-  // создание новой фигуры (в нашем случае только пешки)
-  addNewFigure: function (typeOfCreatedFigure) {
-    //  this.createNewChessFigure[typeOfCreatedFigure].creator.addEventListener('')
+
+  //создание ивента начала drag
+  createDragStartListener(elem, dragStart) {
+    elem.domElement.addEventListener(dragStart, (event) => {
+      //удаляем подсветку если нажали на коня и готовы передвинуть его
+      this.stopHighlightVariant();
+
+      if (this.mobile) {
+        elem.startDragMousePositionX = event.changedTouches[0].pageX;
+        elem.startDragMousePositionY = event.changedTouches[0].pageY;
+        document.body.style.overscrollBehavior = 'none';
+      } else {
+        elem.startDragMousePositionX = event.clientX;
+        elem.startDragMousePositionY = event.clientY;
+      }
+
+      this.board.isDrag = true;
+    })
   },
+
+
+  //создание ивента перемешения drag
+  createDragMoveListener(elem, dragMove) {
+    elem.domElement.addEventListener(dragMove, (event) => {
+      if (this.board.isDrag) {
+        // вызов ф-и передвижения коня следом за курсором мыши ((курсор всегда по центру коня)) с учетом проверки ПК или нет
+        if (this.mobile) {
+          //определение координат при использовании тача
+          var moveOnX = event.changedTouches[0].pageX - this.horse.centeredPositionX;
+          var moveOnY = event.changedTouches[0].pageY - this.horse.centeredPositionY;
+        } else {
+          //определение координат при использовании мышки с учетом отступов от body до board
+          var moveOnX = event.pageX - this.horse.centeredPositionX;
+          var moveOnY = event.pageY - this.horse.centeredPositionY;
+        }
+        this.moveChessFigure(moveOnX - this.horse.halfWidthAndHight, moveOnY - this.horse.halfWidthAndHight);
+      }
+    })
+  }
+
+
 }
 
 
