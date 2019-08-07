@@ -4,9 +4,11 @@ let Chess = {
     this.createBoard();
     this.createCells();
     this.createHorse();
+    this.createPawnField();
     this.highlightVariant();
     this.setListeners();
   },
+
 
   //ф-я обработки устройсва с которого зашли на сайт
   getMobileInfo: function () {
@@ -15,6 +17,7 @@ let Chess = {
       this.mobileFullscreenInfo = false;
     }
   },
+
 
   //создание доски и вызов ф-и которая определяет размеры блока;
   createBoard: function () {
@@ -28,6 +31,7 @@ let Chess = {
   },
 
 
+  // определение размеров игровой доски
   setBoardSize: function () {
     // условие для всегда правильного квадрата и размера доски 90% от миннимального параметра экрана( высоты или ширины)
     if (document.body.offsetWidth >= document.body.offsetHeight) {
@@ -38,7 +42,7 @@ let Chess = {
       this.board.domElement.style.height = window.innerWidth * 0.9 + 'px'
     }
     // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
-    this.defaultSize = this.board.domElement.offsetWidth;
+    this.board.defaultSize = this.board.domElement.offsetWidth;
   },
 
 
@@ -91,10 +95,12 @@ let Chess = {
   },
 
 
+  // определение необходимых параметров коня
   setHorseParams: function () {
-    // определение ширины/высоты ячейки с конем с учетом того , что доска состоит из 8 ячеек а размеры коня(0.124) немного меньше дефолтного значения ячейки (0.125)
-    this.horse.domElement.style.width = (this.defaultSize * 0.124) + 'px';
+    // определение ширины/высоты ячейки с конем с учетом того , что доска состоит из 8 ячеек а размеры коня(0.124) немного меньше дефолтного значения ячейки (0.125) и сохранение этого значения
+    this.horse.domElement.style.width = (this.board.defaultSize * 0.124) + 'px';
     this.horse.domElement.style.height = this.horse.domElement.style.width;
+    this.horse.defaultSizeCell = this.board.defaultSize * 0.124;
 
     //присвоение позициям X,Y для постановки на доску
     this.horse.posinionX = this.board.cells[this.currentCell.id].domElement.getBoundingClientRect().left;
@@ -113,7 +119,6 @@ let Chess = {
 
     //перемещение коня в установленную рандомом ячейку
     this.moveChessFigure(this.horse.posinionX - this.horse.centeredPositionX, this.horse.posinionY - this.horse.centeredPositionY);
-
   },
 
 
@@ -122,6 +127,7 @@ let Chess = {
     document.body.onresize = () => {
       this.setBoardSize();
       this.setHorseParams();
+      this.setPawmFieldParams();
     }
 
     // добавление события клика на каждый элемент ячейки (ход коня + подсветка следующего варианта)
@@ -147,9 +153,15 @@ let Chess = {
 
     //Клик мышки по коню (grad & drop)
     this.horse.domElement.addEventListener(dragStart, (event) => {
-      //передаем позицию мышки во время старта перетягивания для корректного дропа
-      this.horse.startDragMousePositionX = event.clientX;
-      this.horse.startDragMousePositionY = event.clientY;
+      //передаем позицию мышки во время старта перетягивания для корректного дропа бля мобильной версии и пк
+      if (this.mobile) {
+        this.horse.startDragMousePositionX = event.changedTouches[0].pageX;
+        this.horse.startDragMousePositionY = event.changedTouches[0].pageY;
+      } else {
+        this.horse.startDragMousePositionX = event.clientX;
+        this.horse.startDragMousePositionY = event.clientY;
+      }
+
 
       document.body.style.overscrollBehavior = 'none';
       if (event.target.classList.contains('horse')) {
@@ -194,19 +206,31 @@ let Chess = {
         })
 
         //проверить состоялось ли перетаскивая коня (dragMove),если да выполнить анимацию
-        if (this.horse.startDragMousePositionX !== event.clientX && this.horse.startDragMousePositionY !== event.clientY) {
-          //определяем растояние которое надо проанимировать (от места дропа мышки и до ячейки в которую конь будет становиться с учетом центрирования) + добавляем единицу измерения()
-          let dragAnimateX = (this.currentCell.position.x - event.clientX + this.horse.halfWidthAndHight) + 'px';
-          let dragAnimateY = (this.currentCell.position.y - event.clientY + this.horse.halfWidthAndHight) + 'px';
-
+        let dragAnimateX, dragAnimateY;
+        // вычисляем условия окончания драга для мобильного устройства (если перетаскивание елемента состоялось)
+        if (this.mobile && this.horse.startDragMousePositionX !== event.changedTouches[0].pageX && this.horse.startDragMousePositionY !== event.changedTouches[0].pageY) {
+          dragAnimateX = (this.currentCell.position.x - event.changedTouches[0].pageX + this.horse.halfWidthAndHight) + 'px';
+          dragAnimateY = (this.currentCell.position.y - event.changedTouches[0].pageY + this.horse.halfWidthAndHight) + 'px';
+          //  анимируем окончания дропа
           this.promiseAnimate(this.horse.domElement, 'left', dragAnimateX, 200);
           this.promiseAnimate(this.horse.domElement, 'top', dragAnimateY, 200)
             .then(() => { this.highlightVariant(); });
-
-          // обновляем данные коня если состоялся drag&drop
-          this.horse.boardPosX = this.board.cells[this.currentCell.id].boardPosX;
-          this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
         }
+        //определяем состоялолся ли drag&drop или просто кликнули по коню
+        else if (this.horse.startDragMousePositionX !== event.clientX && this.horse.startDragMousePositionY !== event.clientY) {
+          //определяем растояние которое надо проанимировать (от места дропа мышки и до ячейки в которую конь будет становиться с учетом центрирования) + добавляем единицу измерения() для пк
+          dragAnimateX = (this.currentCell.position.x - event.clientX + this.horse.halfWidthAndHight) + 'px';
+          dragAnimateY = (this.currentCell.position.y - event.clientY + this.horse.halfWidthAndHight) + 'px';
+          //  анимируем окончания дропа
+          this.promiseAnimate(this.horse.domElement, 'left', dragAnimateX, 200);
+          this.promiseAnimate(this.horse.domElement, 'top', dragAnimateY, 200)
+            .then(() => { this.highlightVariant(); });
+        }
+
+        // обновляем данные коня если состоялся drag&drop
+        this.horse.boardPosX = this.board.cells[this.currentCell.id].boardPosX;
+        this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
+
         // окончание дропа
         this.horse.isDrag = false;
         // повторная подсветка 
@@ -216,11 +240,13 @@ let Chess = {
     })
   },
 
+
   // перемещение фигуры  коня на позицию с учетом поправки (если надо)
   moveChessFigure: function (newX, newY) {
     this.horse.domElement.style.left = newX + 'px';
     this.horse.domElement.style.top = newY + 'px';
   },
+
 
   // метод подсветки
   highlightVariant: function () {
@@ -242,6 +268,7 @@ let Chess = {
       }
     });
   },
+
 
   // метод отмены подсветки
   stopHighlightVariant: function () {
@@ -316,6 +343,7 @@ let Chess = {
     });
   },
 
+
   // создание анимации с помощью промиса по данным которые расчитали
   promiseAnimate: function (elem, property, changeValue, duration) {
     //определяем суфикс (расчеты работают только для px и Nubmer)
@@ -350,6 +378,7 @@ let Chess = {
     return promise
   },
 
+
   // подготовка к анимации (вычисления направления и величины перемещения)
   preparationForAnimation: function (event) {
     let firstDirection, secondtDirection, firstLenght, secondLenght, elemHorse = this.horse.domElement;
@@ -373,6 +402,55 @@ let Chess = {
     this.promiseAnimate(elemHorse, firstDirection, firstLenght, 600)
       .then(() => this.promiseAnimate(elemHorse, secondtDirection, secondLenght, 300))
       .then(() => this.highlightVariant())
+  },
+
+
+  // создание  поля в котором будут находится "пешки" которые можно перетащить на поле
+  createPawnField: function () {
+    this.pawn = {};
+    //поле в котором будут находится блоки для создания пешек
+    this.pawn.createFieldDomElem = document.createElement('div');
+    this.pawn.createFieldDomElem.classList.add('create-pawns');
+    document.body.appendChild(this.pawn.createFieldDomElem);
+
+    //создание блоков , которые будут генерировать игровые пешки 
+    this.pawn.blackPawnCreator = document.createElement('div');
+    this.pawn.blackPawnCreator.classList.add('black-pawn-creator');
+    this.pawn.createFieldDomElem.appendChild(this.pawn.blackPawnCreator);
+
+    this.pawn.whitePawnCreator = document.createElement('div');
+    this.pawn.whitePawnCreator.classList.add('white-pawn-creator');
+    this.pawn.createFieldDomElem.appendChild(this.pawn.whitePawnCreator);
+
+    this.setPawmFieldParams();
+  },
+
+  //установка размеров для поля создания пешек и его составляющих
+  setPawmFieldParams: function () {
+    // определения размоложения поля 
+    if (document.body.offsetWidth >= document.body.offsetHeight) {
+      this.pawn.createFieldDomElem.style.flexDirection = 'column';
+
+      // если ширина больше высоты , то поле "прибито к левой стороне"
+      this.pawn.createFieldDomElem.style.top = (document.body.offsetHeight / 2 - this.horse.defaultSizeCell) + 'px';
+      this.pawn.createFieldDomElem.style.left = '5px';
+
+    } else {
+      this.pawn.createFieldDomElem.style.flexDirection = 'row';
+
+      // если ширина меньше высоты , то поле "прибито к верху"
+      this.pawn.createFieldDomElem.style.top = '5px';
+      this.pawn.createFieldDomElem.style.left = (document.body.offsetWidth / 2 - this.horse.defaultSizeCell) + 'px';
+    }
+
+    // определение размеров пешек в соответствии с размерами коня и шахматной ячейки
+    this.pawn.blackPawnCreator.style.width = this.horse.defaultSizeCell + 'px';
+    this.pawn.blackPawnCreator.style.height = this.horse.defaultSizeCell + 'px';
+
+    this.pawn.whitePawnCreator.style.width = this.horse.defaultSizeCell + 'px';
+    this.pawn.whitePawnCreator.style.height = this.horse.defaultSizeCell + 'px';
+
+
   },
 }
 

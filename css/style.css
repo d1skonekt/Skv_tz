@@ -10,6 +10,7 @@ body {
   align-items: center;
   justify-content: center;
 }
+/* стили шахматной достки */
 .wrapper-field {
   display: flex;
   flex-wrap: wrap;
@@ -25,6 +26,7 @@ body {
 .brown-bg {
   background-color: #c8623c;
 }
+/* стили коня + подсветка возможных его ходов */
 .horse {
   background: url(../img/horse_logo.png) no-repeat center;
   background-size: cover;
@@ -36,4 +38,19 @@ body {
   background-color: #a9efff !important;
   cursor: pointer;
   box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+/* стили пешки и все что с ней связано */
+.create-pawns {
+  position: absolute;
+  display: flex;
+  /* flex-direction: column; */
+}
+.black-pawn-creator {
+  background: url(../img/pawn_black.png) no-repeat;
+  background-size: cover;
+}
+.white-pawn-creator {
+  background: url(../img/pawn_white.png) no-repeat;
+  background-size: cover;
 }
