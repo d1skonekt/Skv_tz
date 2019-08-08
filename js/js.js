@@ -435,7 +435,9 @@ let Chess = {
   //создание ивента начала drag
   createDragStartListener(listnerFigure, moveFigure, dragStart) {
     listnerFigure.domElement.addEventListener(dragStart, (event) => {
-      // console.log('f-click', this.board.isDrag, event)
+      // фиксит прилипание  фигуры к мыше если многократно клацать на фигуру во время движения
+      event.preventDefault();
+
       if (!this.board.isDrag) {
         //удаляем подсветку если нажали на коня и готовы передвинуть его
         this.stopHighlightVariant();
@@ -479,8 +481,6 @@ let Chess = {
   //создание ивента окончания drop
   createDropEndListener(listnerFigure, moveFigure, dropEnd) {
     listnerFigure.domElement.addEventListener(dropEnd, (event) => {
-
-      // console.log('s-click', this.board.isDrag, event)
       this.board.isDrag = false;
       //присваимваем координады мышки или тача после окончания дропа , чтобы в цикле не переопределять с каждым вызовом
       let dropEndCoordinateX, dropEndCoordinateY;
@@ -511,18 +511,28 @@ let Chess = {
 
         //определяем сторону "игровой клетки" для вычисления клетки в которую необходимо выполнить анимацию dropEnd
         let sizeOfCell = this.board.halfWidthAndHightCell * 2;
-        let dropEndCell;
+        let dropEndCell, cellPosition;
         /* условие по которому определяем ячейку на которой состоялся dropEnd (начало клетки по X и Y опреляем с помощью getBoundingClientRect() + величину стороны клетки тем самым находим кооридантую ширину и 
          высоту для каждой ячейки) и сравниваем с координатой мыши/тача , если  она входит в диапазон высота-ширина клетки то прервываем цикл и сохраняем данные найденой ячейки*/
         for (let i = 0; i < this.board.cellsCount; i++) {
-          let cellPosition = this.board.cells[i].domElement.getBoundingClientRect();
-          if ((dropEndCoordinateX > cellPosition.x && dropEndCoordinateX < cellPosition.x + sizeOfCell) && (dropEndCoordinateY > cellPosition.y && dropEndCoordinateY < cellPosition.y + sizeOfCell)) {
+          cellPosition = this.board.cells[i].domElement.getBoundingClientRect();
+          if ((dropEndCoordinateX >= cellPosition.x && dropEndCoordinateX <= cellPosition.x + sizeOfCell) && (dropEndCoordinateY >= cellPosition.y && dropEndCoordinateY <= cellPosition.y + sizeOfCell)) {
             dropEndCell = this.board.cells[i]
             break
           }
         }
+        //вычисляем растояние , которое надо проанимировать и добавляем px для определения суфикса
+        let dropAnimateX = (cellPosition.x - dropEndCoordinateX + this.board.halfWidthAndHightCell) + 'px';
+        let dropAnimateY = (cellPosition.y - dropEndCoordinateY + this.board.halfWidthAndHightCell) + 'px';
 
-        // console.log(dropEndCell);
+        this.promiseAnimate(moveFigure.domElement, 'left', dropAnimateX, 100);
+        this.promiseAnimate(moveFigure.domElement, 'top', dropAnimateY, 100)
+          .then(() => this.highlightVariant())
+
+        // обновляем данные коня если состоялся drag & drop
+        moveFigure.boardPosX = dropEndCell.boardPosX;
+        moveFigure.boardPosY = dropEndCell.boardPosY;
+
 
       } else {
         // если же просто кликнули по фируге без перемещения подсветчиваем клетки и 
