@@ -90,7 +90,7 @@ let Chess = {
     this.board.domElement.appendChild(this.horse.domElement);
 
     // рандомизируем первое место при загрузке страницы для коня
-    this.currentCell.id = Math.round(Math.random() * 63);
+    this.horse.currentCell = Math.round(Math.random() * 63);
 
     this.setHorseParams();
   },
@@ -102,12 +102,12 @@ let Chess = {
     this.horse.defaultSizeCell = this.board.defaultSize * 0.124;
 
     //присвоение позициям X,Y для постановки на доску
-    this.horse.posinionX = this.board.cells[this.currentCell.id].domElement.getBoundingClientRect().left;
-    this.horse.posinionY = this.board.cells[this.currentCell.id].domElement.getBoundingClientRect().top;
+    this.horse.posinionX = this.board.cells[this.horse.currentCell].domElement.getBoundingClientRect().left;
+    this.horse.posinionY = this.board.cells[this.horse.currentCell].domElement.getBoundingClientRect().top;
 
     // определение позиции на шахматной доске
-    this.horse.boardPosX = this.board.cells[this.currentCell.id].boardPosX;
-    this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
+    this.horse.boardPosX = this.board.cells[this.horse.currentCell].boardPosX;
+    this.horse.boardPosY = this.board.cells[this.horse.currentCell].boardPosY;
 
     // информация для центрированния курсора при захвате 
     this.board.halfWidthAndHightCell = this.horse.domElement.offsetWidth / 2;
@@ -261,7 +261,7 @@ let Chess = {
       this.horse.boardPosX = element.boardPosX;
       this.horse.boardPosY = element.boardPosY;
       // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
-      this.currentCell.id = element.id;
+      this.horse.currentCell = element.id;
 
       //останавливаем подсветку во время анимации 
       this.stopHighlightVariant();
@@ -511,30 +511,35 @@ let Chess = {
 
         //определяем сторону "игровой клетки" для вычисления клетки в которую необходимо выполнить анимацию dropEnd
         let sizeOfCell = this.board.halfWidthAndHightCell * 2;
-        let dropEndCell, cellPosition;
+        let dropEndCell, cellPosition, cellId;
         /* условие по которому определяем ячейку на которой состоялся dropEnd (начало клетки по X и Y опреляем с помощью getBoundingClientRect() + величину стороны клетки тем самым находим кооридантую ширину и 
          высоту для каждой ячейки) и сравниваем с координатой мыши/тача , если  она входит в диапазон высота-ширина клетки то прервываем цикл и сохраняем данные найденой ячейки*/
         for (let i = 0; i < this.board.cellsCount; i++) {
           cellPosition = this.board.cells[i].domElement.getBoundingClientRect();
-          if ((dropEndCoordinateX >= cellPosition.x && dropEndCoordinateX <= cellPosition.x + sizeOfCell) && (dropEndCoordinateY >= cellPosition.y && dropEndCoordinateY <= cellPosition.y + sizeOfCell)) {
-            dropEndCell = this.board.cells[i]
+          if ((dropEndCoordinateX > cellPosition.x && dropEndCoordinateX < cellPosition.x + sizeOfCell) && (dropEndCoordinateY > cellPosition.y && dropEndCoordinateY < cellPosition.y + sizeOfCell)) {
+            dropEndCell = this.board.cells[i];
+            cellId = i;
             break
           }
         }
+
         //вычисляем растояние , которое надо проанимировать и добавляем px для определения суфикса
         let dropAnimateX = (cellPosition.x - dropEndCoordinateX + this.board.halfWidthAndHightCell) + 'px';
         let dropAnimateY = (cellPosition.y - dropEndCoordinateY + this.board.halfWidthAndHightCell) + 'px';
 
-        this.promiseAnimate(moveFigure.domElement, 'left', dropAnimateX, 100);
-        this.promiseAnimate(moveFigure.domElement, 'top', dropAnimateY, 100)
+        this.promiseAnimate(moveFigure.domElement, 'left', dropAnimateX, 50);
+        this.promiseAnimate(moveFigure.domElement, 'top', dropAnimateY, 50)
           .then(() => this.highlightVariant())
 
         // обновляем данные коня если состоялся drag & drop
         moveFigure.boardPosX = dropEndCell.boardPosX;
         moveFigure.boardPosY = dropEndCell.boardPosY;
-
+        moveFigure.posinionX = cellPosition.left;
+        moveFigure.posinionY = cellPosition.top;
+        moveFigure.currentCell = cellId;
 
       } else {
+        console.log('some Err');
         // если же просто кликнули по фируге без перемещения подсветчиваем клетки и 
         this.highlightVariant();
       }
