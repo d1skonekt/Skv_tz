@@ -136,21 +136,22 @@ let Chess = {
       });
     });
 
+    let dragStart, dragMove, dropEnd;
     // проверка на устройство и корректировка условий Drag&Drop
     if (this.mobile) {
       // код для мобильных устройств
-      var dragStart = 'touchstart';
-      var dragMove = 'touchmove';
-      var dropEnd = 'touchend';
+      dragStart = 'touchstart';
+      dragMove = 'touchmove';
+      dropEnd = 'touchend';
       this.runMobileFullscreen();
     } else {
-      var dragStart = 'mousedown';
-      var dragMove = 'mousemove';
-      var dropEnd = 'mouseup';
+      dragStart = 'mousedown';
+      dragMove = 'mousemove';
+      dropEnd = 'mouseup';
     }
 
     // начало drag&drop для коня
-    this.createDragStartListener(this.horse, dragStart);
+    this.createDragStartListener(this.horse, this.horse, dragStart);
     //перемещение самого коня
     this.createDragMoveListener(this.board, this.horse, dragMove);
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
@@ -432,21 +433,24 @@ let Chess = {
 
 
   //создание ивента начала drag
-  createDragStartListener(figure, dragStart) {
-    figure.domElement.addEventListener(dragStart, (event) => {
-      //удаляем подсветку если нажали на коня и готовы передвинуть его
-      this.stopHighlightVariant();
-
-      if (this.mobile) {
-        figure.startDragMousePositionX = event.changedTouches[0].pageX;
-        figure.startDragMousePositionY = event.changedTouches[0].pageY;
-        document.body.style.overscrollBehavior = 'none';
-      } else {
-        figure.startDragMousePositionX = event.clientX;
-        figure.startDragMousePositionY = event.clientY;
+  createDragStartListener(listnerFigure, moveFigure, dragStart) {
+    listnerFigure.domElement.addEventListener(dragStart, (event) => {
+      // console.log('f-click', this.board.isDrag, event)
+      if (!this.board.isDrag) {
+        //удаляем подсветку если нажали на коня и готовы передвинуть его
+        this.stopHighlightVariant();
+        //запоминаем координаны начала drag&drop для анализа "было ли перемещения фигуры"
+        if (this.mobile) {
+          moveFigure.startDragMousePositionX = event.changedTouches[0].pageX;
+          moveFigure.startDragMousePositionY = event.changedTouches[0].pageY;
+          //отключаем  возможность обновлять страницу свайпом вниз после окончания drag&drop
+          document.body.style.overscrollBehavior = 'none';
+        } else {
+          moveFigure.startDragMousePositionX = event.clientX;
+          moveFigure.startDragMousePositionY = event.clientY;
+        }
+        this.board.isDrag = true;
       }
-
-      this.board.isDrag = true;
     })
   },
 
@@ -455,17 +459,18 @@ let Chess = {
   createDragMoveListener(listnerFigure, moveFigure, dragMove) {
     listnerFigure.domElement.addEventListener(dragMove, (event) => {
       if (this.board.isDrag) {
+        let moveOnX, moveOnY;
         // вызов ф-и передвижения коня следом за курсором мыши ((курсор всегда по центру коня)) с учетом проверки ПК или нет
         if (this.mobile) {
-          //определение координат при использовании тача с учетом отступов от body до board
-          var moveOnX = event.changedTouches[0].pageX - this.board.centeredPositionX;
-          var moveOnY = event.changedTouches[0].pageY - this.board.centeredPositionY;
+          //определение координат при использовании тача с учетом отступов от body до board + курсор всегда по центру
+          moveOnX = event.changedTouches[0].pageX - this.board.centeredPositionX - listnerFigure.halfWidthAndHightCell;
+          moveOnY = event.changedTouches[0].pageY - this.board.centeredPositionY - listnerFigure.halfWidthAndHightCell;
         } else {
-          //определение координат при использовании мышки с учетом отступов от body до board
-          var moveOnX = event.pageX - this.board.centeredPositionX;
-          var moveOnY = event.pageY - this.board.centeredPositionY;
+          //определение координат при использовании мышки с учетом отступов от body до board + курсор всегда по центру
+          moveOnX = event.pageX - this.board.centeredPositionX - listnerFigure.halfWidthAndHightCell;
+          moveOnY = event.pageY - this.board.centeredPositionY - listnerFigure.halfWidthAndHightCell;
         }
-        this.moveChessFigure(moveOnX - listnerFigure.halfWidthAndHightCell, moveOnY - listnerFigure.halfWidthAndHightCell, moveFigure);
+        this.moveChessFigure(moveOnX, moveOnY, moveFigure);
       }
     })
   },
@@ -475,31 +480,61 @@ let Chess = {
   createDropEndListener(listnerFigure, moveFigure, dropEnd) {
     listnerFigure.domElement.addEventListener(dropEnd, (event) => {
 
+      // console.log('s-click', this.board.isDrag, event)
+      this.board.isDrag = false;
+      //присваимваем координады мышки или тача после окончания дропа , чтобы в цикле не переопределять с каждым вызовом
+      let dropEndCoordinateX, dropEndCoordinateY;
+      if (this.mobile) {
+        document.body.style.overscrollBehavior = 'auto';
+        dropEndCoordinateX = event.changedTouches[0].pageX;
+        dropEndCoordinateY = event.changedTouches[0].pageY;
+      } else {
+        dropEndCoordinateX = event.clientX;
+        dropEndCoordinateY = event.clientY;
+      }
+
       // условие дропа за пределами доски  и возвращение фигуры в исходную позицию с которой начался drag&drop
-      if ((event.clientX < this.board.centeredPositionX) || (event.clientX > this.board.centeredPositionX + this.board.defaultSize)
-        || (event.clientY < this.board.centeredPositionY) || (event.clientY > this.board.centeredPositionY + this.board.defaultSize)) {
+      if ((dropEndCoordinateX < this.board.centeredPositionX) || (dropEndCoordinateX > this.board.centeredPositionX + this.board.defaultSize)
+        || (dropEndCoordinateY < this.board.centeredPositionY) || (dropEndCoordinateY > this.board.centeredPositionY + this.board.defaultSize)) {
 
         // расчитываем величину анимации с учетом , что курсор мышки находится ровно по центру фигуры , а позицианируется все относительно верхнего левого угла
-        let outFromBordX = (moveFigure.posinionX - event.clientX + this.board.halfWidthAndHightCell) + 'px';
-        let outFromBordY = (moveFigure.posinionY - event.clientY + this.board.halfWidthAndHightCell) + 'px';
+        let outFromBordX = (moveFigure.posinionX - dropEndCoordinateX + this.board.halfWidthAndHightCell) + 'px';
+        let outFromBordY = (moveFigure.posinionY - dropEndCoordinateY + this.board.halfWidthAndHightCell) + 'px';
 
+        //выполняем анимацию возвращения на исходную позицию , если дропнули за пределами доски
         this.promiseAnimate(moveFigure.domElement, 'left', outFromBordX, 200);
         this.promiseAnimate(moveFigure.domElement, 'top', outFromBordY, 200)
           .then(() => this.highlightVariant())
+      }
+      //проверяем состоялся ли dragMove на доске (сравнением координат начала и окончания drag&drop)
+      else if (moveFigure.startDragMousePositionX !== dropEndCoordinateX && moveFigure.startDragMousePositionY !== dropEndCoordinateY) {
 
+        //определяем сторону "игровой клетки" для вычисления клетки в которую необходимо выполнить анимацию dropEnd
+        let sizeOfCell = this.board.halfWidthAndHightCell * 2;
+        let dropEndCell;
+        /* условие по которому определяем ячейку на которой состоялся dropEnd (начало клетки по X и Y опреляем с помощью getBoundingClientRect() + величину стороны клетки тем самым находим кооридантую ширину и 
+         высоту для каждой ячейки) и сравниваем с координатой мыши/тача , если  она входит в диапазон высота-ширина клетки то прервываем цикл и сохраняем данные найденой ячейки*/
+        for (let i = 0; i < this.board.cellsCount; i++) {
+          let cellPosition = this.board.cells[i].domElement.getBoundingClientRect();
+          if ((dropEndCoordinateX > cellPosition.x && dropEndCoordinateX < cellPosition.x + sizeOfCell) && (dropEndCoordinateY > cellPosition.y && dropEndCoordinateY < cellPosition.y + sizeOfCell)) {
+            dropEndCell = this.board.cells[i]
+            break
+          }
+        }
+
+        // console.log(dropEndCell);
+
+      } else {
+        // если же просто кликнули по фируге без перемещения подсветчиваем клетки и 
+        this.highlightVariant();
       }
 
 
 
-
-
-      this.board.isDrag = false;
     })
 
+  },
 
-    // повторная подсветка 
-    this.highlightVariant();
-  }
 
 }
 
