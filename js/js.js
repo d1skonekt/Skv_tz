@@ -47,6 +47,7 @@ let Chess = {
       this.board.domElement.style.height = window.innerWidth * 0.8 + 'px'
     }
 
+    this.board.widthForBlur = document.body.offsetWidth;
   },
 
 
@@ -88,7 +89,7 @@ let Chess = {
     this.horse.figureColor = 'black';
     this.currentCell = {};
     this.horse.domElement = document.createElement('div');
-    this.horse.domElement.classList.add('horse');
+    this.horse.domElement.classList.add('horse', 'chess-figure');
     this.board.domElement.appendChild(this.horse.domElement);
 
     // рандомизируем первое место при загрузке страницы для коня
@@ -146,19 +147,28 @@ let Chess = {
       dragStart = 'touchstart';
       dragMove = 'touchmove';
       dropEnd = 'touchend';
+      dropLeave = 'touchleave'
       this.runMobileFullscreen();
     } else {
       dragStart = 'mousedown';
       dragMove = 'mousemove';
       dropEnd = 'mouseup';
+      dropLeave = 'mouseleave'
     }
 
-    // начало drag&drop для коня
+
+    // начало drag & drop для коня
     this.createDragStartListener(this.horse, this.horse, dragStart);
     //перемещение самого коня
     this.createDragMoveListener(this.board, this.horse, dragMove);
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
     this.createDropEndListener(this.horse, this.horse, dropEnd);
+
+
+    document.body.addEventListener(dropLeave, () => {
+      console.log('gege');
+    })
+
 
   },
 
@@ -276,9 +286,9 @@ let Chess = {
     //получаем исходное состояния св-ва которое будем анимировать
     let startValue = parseFloat(window.getComputedStyle(elem).getPropertyValue(property), 10);
 
-    //отрисовка анимации св-ва
+    //отрисовка анимации св-ва (округление вверх  для плавности анимации )
     function render(timePassed) {
-      elem.style[property] = (startValue + ((timePassed / duration) * (parseFloat(changeValue, 10)))) * newThis.board.coefficientResizing + suffix;
+      elem.style[property] = Math.ceil(startValue + ((timePassed / duration) * (parseFloat(changeValue, 10)))) + suffix;
     }
 
     let promise = new Promise(function (resolve, reject) {
@@ -324,8 +334,8 @@ let Chess = {
     }
 
     // анимация по расчитаным значениям
-    this.promiseAnimate(elemHorse, firstDirection, firstLenght, 2600)
-      .then(() => this.promiseAnimate(elemHorse, secondtDirection, secondLenght, 2300))
+    this.promiseAnimate(elemHorse, firstDirection, firstLenght, 600)
+      .then(() => this.promiseAnimate(elemHorse, secondtDirection, secondLenght, 300))
       .then(() => this.highlightVariant())
   },
 
@@ -408,7 +418,6 @@ let Chess = {
   createDragMoveListener(listnerFigure, moveFigure, dragMove) {
     listnerFigure.domElement.addEventListener(dragMove, (event) => {
       if (this.board.isDrag) {
-        let moveOnX, moveOnY;
         // вызов ф-и передвижения коня следом за курсором мыши ((курсор всегда по центру коня)) с учетом проверки ПК или нет
         if (this.mobile) {
           //определение координат при использовании тача с учетом отступов от body до board + курсор всегда по центру
@@ -420,6 +429,8 @@ let Chess = {
           moveOnY = event.pageY - this.board.centeredPositionY - listnerFigure.halfWidthAndHightCell;
         }
         this.moveChessFigure(moveOnX, moveOnY, moveFigure);
+        // console.log(event.clientX)
+
       }
     })
   },
