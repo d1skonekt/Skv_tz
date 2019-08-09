@@ -520,8 +520,7 @@ let Chess = {
         this.board.isDrag = false;
 
         //возврат без анимации если мышка вышла за поле body с учетом отступов board относительно body
-        leaveFigure.domElement.style.left = leaveFigure.posinionX - this.board.centeredPositionX + 'px';
-        leaveFigure.domElement.style.top = leaveFigure.posinionY - this.board.centeredPositionY + 'px';
+        this.moveChessFigure(leaveFigure.posinionX - this.board.centeredPositionX, leaveFigure.posinionY - this.board.centeredPositionY, leaveFigure)
 
         this.highlightVariant();
       }
