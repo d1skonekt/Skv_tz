@@ -164,12 +164,6 @@ let Chess = {
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
     this.createDropEndListener(this.horse, this.horse, dropEnd);
 
-
-    document.body.addEventListener(dropLeave, () => {
-      console.log('gege');
-    })
-
-
   },
 
 
@@ -215,10 +209,12 @@ let Chess = {
   //перемещение коня по клику на новую позицию с заменой данных
   clickOnVariantJump(element, event) {
     if (element.domElement.classList.contains('variant-for-jump')) {
+      // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
       this.horse.boardPosX = element.boardPosX;
       this.horse.boardPosY = element.boardPosY;
-      // присваиваем значение новой клетки , чтобы при ресайзинге конь не возвращался в прошлую позицию
-      this.horse.currentCell = element.id;
+      this.horse.currentCell = Number(element.id);
+      this.horse.posinionX = element.domElement.getBoundingClientRect().left;
+      this.horse.posinionY = element.domElement.getBoundingClientRect().top;
 
       //останавливаем подсветку во время анимации 
       this.stopHighlightVariant();
@@ -429,8 +425,6 @@ let Chess = {
           moveOnY = event.pageY - this.board.centeredPositionY - listnerFigure.halfWidthAndHightCell;
         }
         this.moveChessFigure(moveOnX, moveOnY, moveFigure);
-        // console.log(event.clientX)
-
       }
     })
   },
