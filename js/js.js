@@ -163,6 +163,8 @@ let Chess = {
     this.createDragMoveListener(this.board, this.horse, dragMove);
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
     this.createDropEndListener(this.horse, this.horse, dropEnd);
+    //окончание drag&drop при выходе мышки из зоны body
+    this.createDropLeaveListener(this.horse, dropLeave);
 
   },
 
@@ -433,6 +435,7 @@ let Chess = {
   //создание ивента окончания drop
   createDropEndListener(listnerFigure, moveFigure, dropEnd) {
     listnerFigure.domElement.addEventListener(dropEnd, (event) => {
+      //информируем об окончании drag&drop
       this.board.isDrag = false;
       //присваимваем координады мышки или тача после окончания дропа , чтобы в цикле не переопределять с каждым вызовом
       let dropEndCoordinateX, dropEndCoordinateY;
@@ -507,6 +510,22 @@ let Chess = {
       }
     })
 
+  },
+
+
+  //ивент выхода мыши за body при drag чтобы предотвратить залипание фигуры ан мышку/тач
+  createDropLeaveListener(leaveFigure, dropLeave) {
+    document.body.addEventListener(dropLeave, () => {
+      if (this.board.isDrag) {
+        this.board.isDrag = false;
+
+        //возврат без анимации если мышка вышла за поле body с учетом отступов board относительно body
+        leaveFigure.domElement.style.left = leaveFigure.posinionX - this.board.centeredPositionX + 'px';
+        leaveFigure.domElement.style.top = leaveFigure.posinionY - this.board.centeredPositionY + 'px';
+
+        this.highlightVariant();
+      }
+    })
   },
 
 

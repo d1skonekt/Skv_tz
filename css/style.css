@@ -38,6 +38,7 @@ body {
   position: absolute;
   cursor: pointer;
   box-sizing: border-box;
+  z-index: 99;
 }
 .variant-for-jump {
   background-color: #a9efff !important;
