@@ -30,6 +30,9 @@ let Chess = {
 
     document.body.insertBefore(this.board.domElement, document.body.firstChild);
     this.setBoardSize();
+
+    // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
+    this.board.defaultSize = this.board.domElement.offsetWidth;
   },
 
 
@@ -43,8 +46,7 @@ let Chess = {
       this.board.domElement.style.width = window.innerWidth * 0.8 + 'px'
       this.board.domElement.style.height = window.innerWidth * 0.8 + 'px'
     }
-    // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
-    this.board.defaultSize = this.board.domElement.offsetWidth;
+
   },
 
 
@@ -123,11 +125,12 @@ let Chess = {
 
   //перерисовка поля и коня при изменении размеров + инвенты
   setListeners() {
-    document.body.onresize = () => {
+    window.addEventListener('resize', () => {
       this.setBoardSize();
       this.setHorseParams();
       this.setPawmFieldParams();
-    }
+      this.setCoefficientResizing();
+    })
 
     // добавление события клика на каждый элемент ячейки (ход коня + подсветка следующего варианта)
     this.board.cells.forEach(element => {
@@ -275,7 +278,7 @@ let Chess = {
 
     //отрисовка анимации св-ва
     function render(timePassed) {
-      elem.style[property] = (startValue + ((timePassed / duration) * (parseFloat(changeValue, 10)))) + suffix;
+      elem.style[property] = (startValue + ((timePassed / duration) * (parseFloat(changeValue, 10)))) * newThis.board.coefficientResizing + suffix;
     }
 
     let promise = new Promise(function (resolve, reject) {
@@ -321,8 +324,8 @@ let Chess = {
     }
 
     // анимация по расчитаным значениям
-    this.promiseAnimate(elemHorse, firstDirection, firstLenght, 600)
-      .then(() => this.promiseAnimate(elemHorse, secondtDirection, secondLenght, 300))
+    this.promiseAnimate(elemHorse, firstDirection, firstLenght, 2600)
+      .then(() => this.promiseAnimate(elemHorse, secondtDirection, secondLenght, 2300))
       .then(() => this.highlightVariant())
   },
 
@@ -499,6 +502,12 @@ let Chess = {
       }
     })
 
+  },
+
+
+  setCoefficientResizing() {
+    this.board.coefficientResizing = this.board.domElement.offsetWidth / this.board.defaultSize;
+    console.log(this.board.coefficientResizing);
   },
 
 
