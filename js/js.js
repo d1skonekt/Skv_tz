@@ -46,8 +46,6 @@ let Chess = {
       this.board.domElement.style.width = window.innerWidth * 0.8 + 'px'
       this.board.domElement.style.height = window.innerWidth * 0.8 + 'px'
     }
-
-    this.board.widthForBlur = document.body.offsetWidth;
   },
 
 
@@ -130,7 +128,8 @@ let Chess = {
       this.setBoardSize();
       this.setHorseParams();
       this.setPawmFieldParams();
-      this.setCoefficientResizing();
+      //измеряем коэффициет ресайза для изменения анимации по время ресайза
+      this.board.coefficientResizing = this.board.domElement.offsetWidth / this.board.defaultSize;
     })
 
     // добавление события клика на каждый элемент ячейки (ход коня + подсветка следующего варианта)
@@ -165,6 +164,11 @@ let Chess = {
     this.createDropEndListener(this.horse, this.horse, dropEnd);
     //окончание drag&drop при выходе мышки из зоны body
     this.createDropLeaveListener(this.horse, dropLeave);
+
+
+    this.myResizeEnd();
+
+
 
   },
 
@@ -520,17 +524,32 @@ let Chess = {
         this.board.isDrag = false;
 
         //возврат без анимации если мышка вышла за поле body с учетом отступов board относительно body
-        this.moveChessFigure(leaveFigure.posinionX - this.board.centeredPositionX, leaveFigure.posinionY - this.board.centeredPositionY, leaveFigure)
+        this.moveChessFigure(leaveFigure.posinionX - this.board.centeredPositionX, leaveFigure.posinionY - this.board.centeredPositionY, leaveFigure);
 
         this.highlightVariant();
       }
     })
   },
 
-
-  setCoefficientResizing() {
-    this.board.coefficientResizing = this.board.domElement.offsetWidth / this.board.defaultSize;
-    console.log(this.board.coefficientResizing);
+  // определение окончания ресайза и присвоения коэффициента ресайза  =1 для корректной работы анимации после ресайза
+  myResizeEnd() {
+    let newThis = this;
+    let rtime, timeout = false, delta = 200;
+    window.addEventListener('resize', () => {
+      rtime = new Date();
+      if (timeout === false) {
+        timeout = true;
+        setTimeout(resizeend, delta);
+      }
+    })
+    function resizeend() {
+      if (new Date() - rtime < delta) {
+        setTimeout(resizeend, delta);
+      } else {
+        timeout = false;
+        newThis.board.coefficientResizing = 1;
+      }
+    }
   },
 
 
