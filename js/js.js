@@ -157,62 +157,6 @@ let Chess = {
     // окончание движение мышки и дроп коня с  учетом того , что начался Драг
     this.createDropEndListener(this.horse, this.horse, dropEnd);
 
-    // this.horse.domElement.addEventListener(dropEnd, (event) => {
-    //   if (this.board.isDrag) {
-    //     // переопределение позиции коня для корректной подсветки и растановке на поле
-    //     let horsePosition = this.horse.domElement.getBoundingClientRect();
-    //     this.board.cells.forEach(cell => {
-    //       let cellPosition = cell.domElement.getBoundingClientRect();
-
-    //       if ((cellPosition.top - horsePosition.top) < this.horse.halfWidthAndHightCell &&
-    //         (cellPosition.left - horsePosition.left) < this.horse.halfWidthAndHightCell &&
-    //         (cellPosition.right - horsePosition.right) < this.horse.halfWidthAndHightCell &&
-    //         (cellPosition.bottom - horsePosition.bottom) < this.horse.halfWidthAndHightCell) {
-    //         // определяем над какой ячейкой конь
-    //         this.currentCell.id = cell.id;
-    //         this.currentCell.position = cellPosition;
-    //       }
-    //     })
-
-    //     //проверить состоялось ли перетаскивая коня (dragMove),если да выполнить анимацию
-    //     let dragAnimateX, dragAnimateY;
-    //     // вычисляем условия окончания драга для мобильного устройства (если перетаскивание елемента состоялось)
-    //     if (this.mobile) {
-    //       document.body.style.overscrollBehavior = 'auto';
-    //       if (this.horse.startDragMousePositionX !== event.changedTouches[0].pageX && this.horse.startDragMousePositionY !== event.changedTouches[0].pageY) {
-    //         dragAnimateX = (this.currentCell.position.x - event.changedTouches[0].pageX + this.horse.halfWidthAndHightCell) + 'px';
-    //         dragAnimateY = (this.currentCell.position.y - event.changedTouches[0].pageY + this.horse.halfWidthAndHightCell) + 'px';
-    //         //  анимируем окончания дропа
-    //         this.promiseAnimate(this.horse.domElement, 'left', dragAnimateX, 150);
-    //         this.promiseAnimate(this.horse.domElement, 'top', dragAnimateY, 150)
-    //           .then(() => { this.highlightVariant(); });
-    //       }
-    //     }
-    //     //определяем состоялолся ли drag&drop или просто кликнули по коню на пк
-    //     else if (this.horse.startDragMousePositionX !== event.clientX && this.horse.startDragMousePositionY !== event.clientY) {
-    //       //определяем растояние которое надо проанимировать (от места дропа мышки и до ячейки в которую конь будет становиться с учетом центрирования) + добавляем единицу измерения() для пк
-    //       dragAnimateX = (this.currentCell.position.x - event.clientX + this.horse.halfWidthAndHightCell) + 'px';
-    //       dragAnimateY = (this.currentCell.position.y - event.clientY + this.horse.halfWidthAndHightCell) + 'px';
-    //       //  анимируем окончания дропа
-    //       this.promiseAnimate(this.horse.domElement, 'left', dragAnimateX, 150);
-    //       this.promiseAnimate(this.horse.domElement, 'top', dragAnimateY, 150)
-    //         .then(() => { this.highlightVariant(); });
-    //     }
-
-    //     // обновляем данные коня если состоялся drag&drop
-    //     this.horse.boardPosX = this.board.cells[this.currentCell.id].boardPosX;
-    //     this.horse.boardPosY = this.board.cells[this.currentCell.id].boardPosY;
-
-    //     // окончание дропа
-    //     this.board.isDrag = false;
-    //     // повторная подсветка 
-    //     this.highlightVariant();
-
-    //   }
-    // })
-
-    // ивенты связаны с пешками
-    // this.addNewFigure('blackPawn');
   },
 
 
@@ -516,7 +460,7 @@ let Chess = {
          высоту для каждой ячейки) и сравниваем с координатой мыши/тача , если  она входит в диапазон высота-ширина клетки то прервываем цикл и сохраняем данные найденой ячейки*/
         for (let i = 0; i < this.board.cellsCount; i++) {
           cellPosition = this.board.cells[i].domElement.getBoundingClientRect();
-          if ((dropEndCoordinateX > cellPosition.x && dropEndCoordinateX < cellPosition.x + sizeOfCell) && (dropEndCoordinateY > cellPosition.y && dropEndCoordinateY < cellPosition.y + sizeOfCell)) {
+          if ((dropEndCoordinateX > cellPosition.left && dropEndCoordinateX < cellPosition.right) && (dropEndCoordinateY > cellPosition.top && dropEndCoordinateY < cellPosition.bottom)) {
             dropEndCell = this.board.cells[i];
             cellId = i;
             break
@@ -538,14 +482,21 @@ let Chess = {
         moveFigure.posinionY = cellPosition.top;
         moveFigure.currentCell = cellId;
 
-      } else {
-        console.log('some Err');
-        // если же просто кликнули по фируге без перемещения подсветчиваем клетки и 
+      }
+      //если фигуру не перемещали а просто кликнули ничего не делаем , а просто включаем подсветку после того , как состоялся dropEnd
+      else if (moveFigure.startDragMousePositionX === dropEndCoordinateX && moveFigure.startDragMousePositionY === dropEndCoordinateY) {
         this.highlightVariant();
       }
+      // условие для события , когда фигуру берут за грань , а она сразу перемещается под курсор (центр фигуры оказывается под курсором) но фактически событиее move не происходит и мы возвращаем фигуру в исходное положение
+      else {
+        let falseDragAndDropX = (moveFigure.posinionX - dropEndCoordinateX + this.board.halfWidthAndHightCell) + 'px';
+        let falseDragAndDropY = (moveFigure.posinionY - dropEndCoordinateY + this.board.halfWidthAndHightCell) + 'px';
 
-
-
+        //выполняем анимацию возвращения на исходную позицию , если дропнули за пределами доски
+        this.promiseAnimate(moveFigure.domElement, 'left', falseDragAndDropX, 50);
+        this.promiseAnimate(moveFigure.domElement, 'top', falseDragAndDropY, 50)
+          .then(() => this.highlightVariant())
+      }
     })
 
   },
