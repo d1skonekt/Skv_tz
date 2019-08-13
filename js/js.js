@@ -29,10 +29,9 @@ let Chess = {
     this.board.domElement.classList.add('wrapper-field');
 
     document.body.insertBefore(this.board.domElement, document.body.firstChild);
+
     this.setBoardSize();
 
-    // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
-    this.board.defaultSize = this.board.domElement.offsetWidth;
   },
 
 
@@ -46,6 +45,9 @@ let Chess = {
       this.board.domElement.style.width = window.innerWidth * 0.8 + 'px'
       this.board.domElement.style.height = window.innerWidth * 0.8 + 'px'
     }
+
+    // присвоение текущей ширины поля для вычисления ширины и высоты ячейки
+    this.board.defaultSize = this.board.domElement.offsetWidth;
   },
 
 
@@ -128,8 +130,9 @@ let Chess = {
       this.setBoardSize();
       this.setHorseParams();
       this.setPawmFieldParams();
-      //измеряем коэффициет ресайза для изменения анимации по время ресайза
-      this.board.coefficientResizing = this.board.domElement.offsetWidth / this.board.defaultSize;
+      // останавливает анимамцию при ресайзе но, фигура появляется в конечной ячейке
+      cancelAnimationFrame(this.board.raf);
+
     })
 
     // добавление события клика на каждый элемент ячейки (ход коня + подсветка следующего варианта)
@@ -165,10 +168,8 @@ let Chess = {
     //окончание drag&drop при выходе мышки из зоны body
     this.createDropLeaveListener(this.horse, dropLeave);
 
-
+    //окончание ресайза;
     this.myResizeEnd();
-
-
 
   },
 
@@ -282,9 +283,9 @@ let Chess = {
   // создание анимации с помощью промиса по данным которые расчитали
   promiseAnimate(elem, property, changeValue, duration) {
     // переопределяем this для корректной работы анимации и возможности использовать коэффициент ресайза
-    let newThis = this
+    let newThis = this;
     //определяем суфикс (расчеты работают только для px и Nubmer)
-    let suffix = changeValue.replace(/[0-9+-.,]/g, '')
+    let suffix = changeValue.replace(/[0-9+-.,]/g, '');
     //получаем исходное состояния св-ва которое будем анимировать
     let startValue = parseFloat(window.getComputedStyle(elem).getPropertyValue(property), 10);
 
@@ -292,11 +293,11 @@ let Chess = {
     function render(timePassed) {
       elem.style[property] = Math.ceil(startValue + ((timePassed / duration) * (parseFloat(changeValue, 10)))) + suffix;
     }
-
-    let promise = new Promise(function (resolve, reject) {
+    let promise = new Promise((resolve, reject) => {
       let start = performance.now();
 
       requestAnimationFrame(function anime(time) {
+
         // определить, сколько прошло времени с начала анимации
         let timePassed = time - start;
 
@@ -308,9 +309,11 @@ let Chess = {
 
         // если время анимации не закончилось - запланировать ещё кадр
         if (timePassed < duration) {
-          requestAnimationFrame(anime)
+          // сохраняем значение анимации для возможности её отмены
+          newThis.board.raf = requestAnimationFrame(anime);
         }
       })
+
     })
     return promise
   },
@@ -335,10 +338,11 @@ let Chess = {
       secondLenght = (event.target.offsetLeft - elemHorse.offsetLeft) + 'px';
     }
 
+
     // анимация по расчитаным значениям
-    this.promiseAnimate(elemHorse, firstDirection, firstLenght, 600)
-      .then(() => this.promiseAnimate(elemHorse, secondtDirection, secondLenght, 300))
-      .then(() => this.highlightVariant())
+    this.promiseAnimate(elemHorse, firstDirection, firstLenght, 400)
+      .then(() => this.promiseAnimate(elemHorse, secondtDirection, secondLenght, 200))
+      .then(() => this.highlightVariant());
   },
 
 
@@ -461,15 +465,14 @@ let Chess = {
         let outFromBordY = (moveFigure.posinionY - dropEndCoordinateY + this.board.halfWidthAndHightCell) + 'px';
 
         //выполняем анимацию возвращения на исходную позицию , если дропнули за пределами доски
-        this.promiseAnimate(moveFigure.domElement, 'left', outFromBordX, 200);
-        this.promiseAnimate(moveFigure.domElement, 'top', outFromBordY, 200)
-          .then(() => this.highlightVariant())
+        Promise.all([
+          this.promiseAnimate(moveFigure.domElement, 'left', outFromBordX, 200),
+          this.promiseAnimate(moveFigure.domElement, 'top', outFromBordY, 200)
+        ])
+          .then(() => this.highlightVariant());
       }
       //проверяем состоялся ли dragMove на доске (сравнением координат начала и окончания drag&drop)
       else if (moveFigure.startDragMousePositionX !== dropEndCoordinateX && moveFigure.startDragMousePositionY !== dropEndCoordinateY) {
-
-        //определяем сторону "игровой клетки" для вычисления клетки в которую необходимо выполнить анимацию dropEnd
-        let sizeOfCell = this.board.halfWidthAndHightCell * 2;
         let dropEndCell, cellPosition, cellId;
         /* условие по которому определяем ячейку на которой состоялся dropEnd (начало клетки по X и Y опреляем с помощью getBoundingClientRect() + величину стороны клетки тем самым находим кооридантую ширину и 
          высоту для каждой ячейки) и сравниваем с координатой мыши/тача , если  она входит в диапазон высота-ширина клетки то прервываем цикл и сохраняем данные найденой ячейки*/
@@ -486,9 +489,12 @@ let Chess = {
         let dropAnimateX = (cellPosition.x - dropEndCoordinateX + this.board.halfWidthAndHightCell) + 'px';
         let dropAnimateY = (cellPosition.y - dropEndCoordinateY + this.board.halfWidthAndHightCell) + 'px';
 
-        this.promiseAnimate(moveFigure.domElement, 'left', dropAnimateX, 50);
-        this.promiseAnimate(moveFigure.domElement, 'top', dropAnimateY, 50)
-          .then(() => this.highlightVariant())
+        // выполняем анимацию 
+        Promise.all([
+          this.promiseAnimate(moveFigure.domElement, 'left', dropAnimateX, 50),
+          this.promiseAnimate(moveFigure.domElement, 'top', dropAnimateY, 50)
+        ])
+          .then(() => this.highlightVariant());
 
         // обновляем данные коня если состоялся drag & drop
         moveFigure.boardPosX = dropEndCell.boardPosX;
@@ -508,9 +514,11 @@ let Chess = {
         let falseDragAndDropY = (moveFigure.posinionY - dropEndCoordinateY + this.board.halfWidthAndHightCell) + 'px';
 
         //выполняем анимацию возвращения на исходную позицию , если дропнули за пределами доски
-        this.promiseAnimate(moveFigure.domElement, 'left', falseDragAndDropX, 50);
-        this.promiseAnimate(moveFigure.domElement, 'top', falseDragAndDropY, 50)
-          .then(() => this.highlightVariant())
+        Promise.all([
+          this.promiseAnimate(moveFigure.domElement, 'left', falseDragAndDropX, 50),
+          this.promiseAnimate(moveFigure.domElement, 'top', falseDragAndDropY, 50)
+        ])
+          .then(() => this.highlightVariant());
       }
     })
 
@@ -531,9 +539,9 @@ let Chess = {
     })
   },
 
+
   // определение окончания ресайза и присвоения коэффициента ресайза  =1 для корректной работы анимации после ресайза
   myResizeEnd() {
-    let newThis = this;
     let rtime, timeout = false, delta = 200;
     window.addEventListener('resize', () => {
       rtime = new Date();
@@ -547,11 +555,15 @@ let Chess = {
         setTimeout(resizeend, delta);
       } else {
         timeout = false;
-        newThis.board.coefficientResizing = 1;
+        console.log('resize end');
+
       }
     }
   },
 
+  redefineFigurePosition() {
+
+  },
 
 }
 
