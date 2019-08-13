@@ -542,6 +542,7 @@ let Chess = {
 
   // определение окончания ресайза и присвоения коэффициента ресайза  =1 для корректной работы анимации после ресайза
   myResizeEnd() {
+    let newThis = this;
     let rtime, timeout = false, delta = 200;
     window.addEventListener('resize', () => {
       rtime = new Date();
@@ -556,14 +557,12 @@ let Chess = {
       } else {
         timeout = false;
         console.log('resize end');
-
+        //т.к данные фигуры "конь" перезаписываются после клика на "ячейку для хода" достаточно всего после ресайза запустить ф-ю подсветки котороя не выполняется при остановке анимации
+        newThis.highlightVariant();
       }
     }
   },
 
-  redefineFigurePosition() {
-
-  },
 
 }
 
